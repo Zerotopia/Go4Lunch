@@ -1,7 +1,7 @@
-version: 2
+version: 2.1
 jobs:
   test:
-    working_directory: ~/AndroidStudio/MyNews
+    working_directory: ~/AndroidStudio/Go4Lunch
     docker:
       - image: circleci/android:api-29  # gcloud is baked into this image
     steps:
