@@ -49,7 +49,9 @@ jobs:
       - run:
          name: Create Service
          context: Test
-         command: echo $GOOGLE_SERVICE > app/google-services.json
+         command: |
+            echo $GOOGLE_SERVICE > app/google-services.json
+            cat app/google-services.json
       - run:
           name: Download Dependencies
           command: |
