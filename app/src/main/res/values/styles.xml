@@ -9,6 +9,6 @@
     </style>
 
     <style name="SignInTheme" parent="FirebaseUI">
-<!--        <item name="android:windowBackground">@mipmap/sign_in_img</item>-->
+        <item name="android:windowBackground">@mipmap/sign_in_img</item>
     </style>
 </resources>

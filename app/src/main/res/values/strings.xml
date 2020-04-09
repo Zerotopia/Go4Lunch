@@ -5,4 +5,5 @@
     <string name="facebook_application_id" translatable="false">206797474097291</string>
     <string name="facebook_login_protocol_scheme" translatable="false"
         tools:ignore="UnusedResources">fb206797474097291</string>
+    <string name="google_maps_key">" AIzaSyBsJuEIP1m7ZIB5NcD_wuFQW_mAyEaOAL0"</string>
 </resources>
