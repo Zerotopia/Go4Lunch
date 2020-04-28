@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.go4lunch.model.NearByPlace;
 import com.example.go4lunch.model.Place;
+import com.example.go4lunch.repository.MapService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
