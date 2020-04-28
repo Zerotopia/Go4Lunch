@@ -1,4 +1,4 @@
-package com.example.go4lunch;
+package com.example.go4lunch.repository;
 
 import com.example.go4lunch.model.NearByPlace;
 
