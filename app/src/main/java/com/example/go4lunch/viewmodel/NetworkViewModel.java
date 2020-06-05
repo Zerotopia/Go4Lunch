@@ -15,12 +15,15 @@ import com.example.go4lunch.repository.NetworkRepository;
 public class NetworkViewModel extends ViewModel {
 
     private MutableLiveData<NearByPlace> mNetworkObservable;
+    private NetworkRepository mNetworkRepository;
+
+    public NetworkViewModel(NetworkRepository networkRepository) {
+        mNetworkRepository = networkRepository;
+    }
 
     public void init() {
-        if (mNetworkObservable != null) {
-            return;
-        }
-        mNetworkObservable = NetworkRepository.getInstance().getNearByPlace();
+        if (mNetworkObservable != null) return;
+        mNetworkObservable = mNetworkRepository.getNearByPlace();
     }
 
     public LiveData<NearByPlace> getNetworkObservable() {

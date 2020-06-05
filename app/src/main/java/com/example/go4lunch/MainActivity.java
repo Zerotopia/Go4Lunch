@@ -29,7 +29,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.Arrays;
-//import com.example.go4lunch.RecyclerFragment;
+//import com.example.go4lunch.view.RecyclerFragment;
 
 public class MainActivity extends AppCompatActivity {
 

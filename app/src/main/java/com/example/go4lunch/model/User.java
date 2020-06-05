@@ -1,12 +1,20 @@
 package com.example.go4lunch.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class User {
+    @SerializedName("FirstName")
     private String mFirstName;
+    @SerializedName("LastName")
     private String mLastName;
+    @SerializedName("Email")
     private String mEmail;
-    private boolean mIsActive;
+   // private boolean mIsActive;
 
     private int mUserId;
+    @SerializedName("Photo")
+    private String mPhoto;
+    @SerializedName("RestaurantId")
     private int mRestaurantId;
 
 
@@ -41,13 +49,13 @@ public class User {
         mEmail = email;
     }
 
-    public boolean isActive() {
-        return mIsActive;
-    }
+   // public boolean isActive() {
+   //     return mIsActive;
+   // }
 
-    public void setActive(boolean active) {
-        mIsActive = active;
-    }
+   // public void setActive(boolean active) {
+   //     mIsActive = active;
+   // }
 
     public int getRestaurantId() {
         return mRestaurantId;
@@ -57,6 +65,19 @@ public class User {
         this.mRestaurantId = restaurantId;
     }
 
+    public int getUserId() {
+        return mUserId;
+    }
 
+    public void setUserId(int userId) {
+        mUserId = userId;
+    }
 
+    public String getPhoto() {
+        return mPhoto;
+    }
+
+    public void setPhoto(String photo) {
+        mPhoto = photo;
+    }
 }

@@ -9,26 +9,19 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.go4lunch.R;
+import com.example.go4lunch.di.Injection;
 import com.example.go4lunch.model.NearByPlace;
 import com.example.go4lunch.model.Place;
-import com.example.go4lunch.repository.MapService;
 import com.example.go4lunch.viewmodel.NetworkViewModel;
-import com.google.android.gms.common.api.internal.LifecycleFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = "TAG";
@@ -43,7 +36,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final NetworkViewModel networkViewModel =
-                ViewModelProviders.of(this).get(NetworkViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
         networkViewModel.init();
         observeViewModel(networkViewModel);
     }
@@ -54,11 +47,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void updateNearByPlace(NearByPlace nearByPlace) {
         mNearByPlace = nearByPlace;
+        Log.d(TAG, "updateNearByPlace: ");
         if ((mMap != null)) {
+            Log.d(TAG, "updateNearByPlace: mmapnn");
+            if (nearByPlace.getResults() != null) Log.d(TAG, "updateNearByPlace: cool");
+            else Log.d(TAG, "updateNearByPlace: Hmmmm");
             for (Place p : nearByPlace.getResults()) {
-                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName()));
+                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName() + p.getGeometry().getCoordinate().toString()));
             }
-        }
+        } else Log.d(TAG, "updateNearByPlace: null");
 
     }
 
@@ -92,7 +89,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private LatLng initialPosition() {
-        return new LatLng(-33.8670522, 151.1957362);
+        return new LatLng(47.390289,0.688850);
     }
 
     @Override
@@ -102,7 +99,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         Log.d(TAG, "onCreateView: retrocall");
         if (mNearByPlace != null) {
             for (Place p : mNearByPlace.getResults()) {
-                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName()));
+                Log.d(TAG, "onMapReady: marker");
+                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName() + p.getGeometry().getCoordinate().toString()));
             }
         }
         //mMap.addMarker(new MarkerOptions().position(initialPosition()).title("Centre du monde"));
