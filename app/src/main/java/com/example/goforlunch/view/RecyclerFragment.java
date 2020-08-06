@@ -1,5 +1,6 @@
 package com.example.goforlunch.view;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -8,8 +9,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+
 import androidx.appcompat.widget.SearchView;
+
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -52,6 +57,13 @@ public class RecyclerFragment extends Fragment {
     private PredictionViewModel mPredictionViewModel;
     private List<User> mUsers;
 
+    private AdapterListener mAdapterListener;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mAdapterListener = (AdapterListener) context;
+    }
 
     @NonNull
     public static RecyclerFragment newInstance(boolean listView) {
@@ -65,21 +77,22 @@ public class RecyclerFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-         mPredictionViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(PredictionViewModel.class);
-        mPredictionViewModel.init();
-        observeViewModel();
-    }
-//
-    private void observeViewModel() {
-       mPredictionViewModel.getPredictionObservable().observe(this, this::updateRestaurant);
-        Log.d("TAG", "observeViewModel: nameobserve");
+//        mPredictionViewModel =
+//                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(PredictionViewModel.class);
+//        mPredictionViewModel.init();
+//        observeViewModel();
     }
 
-    private void updateRestaurant(List<AutocompletePrediction> predictions) {
-        Log.d("TAG", "updateRestaurant: " + predictions.size());
-        adapter.setPredictions(predictions);
-    }
+    //
+//    private void observeViewModel() {
+//        mPredictionViewModel.getPredictionObservable().observe(this, this::updateRestaurant);
+//        Log.d("TAG", "observeViewModel: nameobserve");
+//    }
+//
+//    private void updateRestaurant(List<AutocompletePrediction> predictions) {
+//        Log.d("TAG", "updateRestaurant: " + predictions.size());
+//        adapter.setPredictions(predictions);
+//    }
 
 
     @Override
@@ -109,6 +122,7 @@ public class RecyclerFragment extends Fragment {
                 Log.d("TAG", "onCreateView: success");
 
                 mUsers = documentSnapshots.toObjects(User.class);
+               // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
                 Log.d("TAG", "onCreateView: " + mUsers.size());
                 for (User user : mUsers) {
                     Log.d("TAG", "onCreateView: " + user.getEmail());
@@ -116,8 +130,13 @@ public class RecyclerFragment extends Fragment {
                 Log.d("TAG", "onCreateView: muserok");
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
                 mRecyclerView.setLayoutManager(layoutManager);
-                mWorkerAdapter = new WorkerAdapter(mUsers);
+                mWorkerAdapter = new WorkerAdapter(mUsers, false);
                 mRecyclerView.setAdapter(mWorkerAdapter);
+
+                while (mRecyclerView.getItemDecorationCount() > 0) {
+                    mRecyclerView.removeItemDecorationAt(0);
+                }
+                mRecyclerView.addItemDecoration(new CustomItemDecoration(listView.getContext()));
             }).addOnFailureListener(e -> {
                 Log.d("TAG", "onCreateView: fail " + e.getMessage());
             });
@@ -195,52 +214,65 @@ public class RecyclerFragment extends Fragment {
         return listView;
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        final SearchView searchView = (SearchView) menu.findItem(R.id.search_item).getActionView();
-        initSearchView(searchView);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
+//    @Override
+//    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+//        final SearchView searchView = (SearchView) menu.findItem(R.id.search_item).getActionView();
+//        initSearchView(searchView);
+//        super.onCreateOptionsMenu(menu, inflater);
+//    }
 
 
-    public void initSearchView(SearchView searchView) {
-        searchView.setQueryHint("Search");
-        searchView.setIconifiedByDefault(false);
-        searchView.setFocusable(true);
-        searchView.setIconified(false);
-        searchView.requestFocusFromTouch();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                //  progressBar.setIndeterminate(true);
-
-                // Cancel any previous place prediction requests
-                handler.removeCallbacksAndMessages(null);
-
-                // Start a new place prediction request in 300 ms
-                handler.postDelayed(() -> {
-                    mPredictionViewModel.newQuery(newText);
-                   // getPlacePredictions(newText);
-                }, 300);
-                return true;
-            }
-        });
-    }
+//    public void initSearchView(SearchView searchView) {
+//        searchView.setQueryHint("Search");
+//        searchView.setIconifiedByDefault(false);
+//        searchView.setFocusable(true);
+//        searchView.setIconified(false);
+//        searchView.requestFocusFromTouch();
+//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                //  progressBar.setIndeterminate(true);
+//
+//                // Cancel any previous place prediction requests
+//                handler.removeCallbacksAndMessages(null);
+//
+//                // Start a new place prediction request in 300 ms
+//                handler.postDelayed(() -> {
+//                    mPredictionViewModel.newQuery(newText);
+//                    // getPlacePredictions(newText);
+//                }, 300);
+//                return true;
+//            }
+//        });
+//    }
 
     private void initRecyclerView(View view) {
 
-            final RecyclerView recyclerView = view.findViewById(R.id.fragment_recyclerview);
-            final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-            recyclerView.setLayoutManager(layoutManager);
-            recyclerView.setAdapter(adapter);
-            if (getContext() != null)
-                recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
+        final RecyclerView recyclerView = view.findViewById(R.id.fragment_recyclerview);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
+        if (getContext() != null)
+            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
+    }
+
+    public void updateList(String newText) {
+        List<User> newList = new ArrayList<>();
+        if (mUsers != null) {
+            for (User user : mUsers) {
+                if ((user.getFirstName().startsWith(newText)) || (user.getLastName().startsWith(newText))) {
+                    newList.add(user);
+                }
+            }
+            mWorkerAdapter = new WorkerAdapter(newList, false);
+            mRecyclerView.setAdapter(mWorkerAdapter);
         }
+    }
 
 //   private LocationBias bias = RectangularBounds.newInstance(
 //            new LatLng(47.38545, 0.67909), // SW lat, lng
@@ -258,7 +290,7 @@ public class RecyclerFragment extends Fragment {
 //                new LatLng(22.730671, 88.524896) // NE lat, lng
 //        );
 
-        // Create a new programmatic Place Autocomplete request in Places SDK for Android
+    // Create a new programmatic Place Autocomplete request in Places SDK for Android
 //        final FindAutocompletePredictionsRequest newRequest = FindAutocompletePredictionsRequest
 //                .builder()
 //                .setSessionToken(((MapActivity) getActivity()).getSessionToken())
@@ -287,5 +319,8 @@ public class RecyclerFragment extends Fragment {
 //            }
 //        });
 //    }
+    public interface AdapterListener {
+        void setSearchViewAdapter(List<User> users, RecyclerView recyclerView);
+    }
 
 }

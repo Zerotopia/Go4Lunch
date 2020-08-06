@@ -4,18 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/row_worker"
-    android:weightSum="7">
+    android:weightSum="10"
+    android:padding="10dp"
+    android:divider="@null"
+    >
 
     <ImageView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:id="@+id/profile_imageview" />
+        android:id="@+id/profile_imageview"
+        />
 
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="5"
+        android:layout_weight="8"
         android:id="@+id/choice_textview"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="20dp"
         />
 </LinearLayout>

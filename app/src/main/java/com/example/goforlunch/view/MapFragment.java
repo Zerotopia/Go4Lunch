@@ -1,13 +1,19 @@
 package com.example.goforlunch.view;
 
+import android.content.Context;
+import android.gesture.Prediction;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -16,12 +22,16 @@ import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
 import com.example.goforlunch.model.Place;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
+import com.example.goforlunch.viewmodel.PredictionViewModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.model.AutocompletePrediction;
+
+import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = "TAG";
@@ -30,7 +40,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final String LONGITUDE = "LNG";
     private GoogleMap mMap;
     private NearByPlace mNearByPlace;
+    private PredictionViewModel mPredictionViewModel;
+    private PredictionAdapter adapter = new PredictionAdapter();
+    private Handler handler = new Handler();
+    private MapMarkerListener mMapMarkerListener;
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mMapMarkerListener = (MapMarkerListener) context;
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -44,6 +63,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         observeViewModel(networkViewModel);
         Log.d(TAG, "onActivityCreated: mapfragment observe");
     }
+
 
     private void observeViewModel(NetworkViewModel networkViewModel) {
         Log.d(TAG, "observeViewModel: mapfragment in observe");
@@ -86,6 +106,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .findFragmentById(R.id.map_fragment);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
+            mMapMarkerListener.setSearchMarker(mMap);
             Log.d(TAG, "onCreateView: nonnll nonnull mapfragment");
         } else Log.d(TAG, "onCreateView: nonnull null mapfragment");
         // }
@@ -113,5 +134,52 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         //mMap.addMarker(new MarkerOptions().position(initialPosition()).title("Centre du monde"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(initialPosition()));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        final SearchView searchView = (SearchView) menu.findItem(R.id.search_item).getActionView();
+        initSearchView(searchView);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void initSearchView(SearchView searchView) {
+        searchView.setQueryHint("Search");
+        searchView.setIconifiedByDefault(false);
+        searchView.setFocusable(true);
+        searchView.setIconified(false);
+        searchView.requestFocusFromTouch();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //  progressBar.setIndeterminate(true);
+
+                // Cancel any previous place prediction requests
+                handler.removeCallbacksAndMessages(null);
+
+                // Start a new place prediction request in 300 ms
+                handler.postDelayed(() -> {
+                    mPredictionViewModel.newQuery(newText);
+                    // getPlacePredictions(newText);
+                }, 300);
+                return true;
+            }
+        });
+    }
+
+    public void updateUI(LatLng latLng) {
+        if (mMap != null) {
+            mMap.clear();
+            mMap.addMarker(new MarkerOptions().position(latLng));
+        }
+    }
+
+    public interface MapMarkerListener {
+        void setSearchMarker (GoogleMap map);
     }
 }

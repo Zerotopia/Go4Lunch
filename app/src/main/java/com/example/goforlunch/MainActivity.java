@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "onActivityResult: resultOK");
 
-            } else Log.d(TAG, "onActivityResult: result fail");
+            } else Log.d(TAG, "onActivityResult: result fail" + resultCode);
         } else mCallbackManager.onActivityResult(requestCode,resultCode,data);
     }
 

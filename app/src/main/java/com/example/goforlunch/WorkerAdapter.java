@@ -24,9 +24,11 @@ import java.util.List;
 public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
 
     private List<User> mUserList;
+    private boolean mDetail;
 
-    public WorkerAdapter(List<User> userList) {
+    public WorkerAdapter(List<User> userList, boolean detail) {
         mUserList = userList;
+        mDetail = detail;
     }
 
     @NonNull
@@ -43,7 +45,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
         Log.d("TAG", "onBindViewHolder: position : " + position);
         User user = mUserList.get(position);
         Log.d("TAG", "onBindViewHolder: user :  " + user.getFirstName());
-        holder.setUser(user);
+        holder.setUser(user,mDetail);
         Log.d("TAG", "onBindViewHolder:  setUser done");
         holder.setImage(user);
         Log.d("TAG", "onBindViewHolder:  setImage done ");
@@ -72,8 +74,11 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
             mStorageReference = mFirebaseStorage.getReference();
         }
 
-        public void setUser(User user) {
-            choice.setText(user.getFirstName() + " lunch in" + user.getRestaurantId());
+        public void setUser(User user, boolean detail) {
+            if (detail)
+                choice.setText(user.getFirstName() + " is joining.");
+            else
+                choice.setText(user.getFirstName() + " lunch in" + user.getRestaurantId());
         }
 
         public void setImage(User user) {

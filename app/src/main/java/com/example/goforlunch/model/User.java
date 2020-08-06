@@ -1,5 +1,7 @@
 package com.example.goforlunch.model;
 
+import java.nio.file.attribute.UserPrincipalLookupService;
+
 public class User {
     //@SerializedName("FirstName")
     private String FirstName;
@@ -18,10 +20,11 @@ public class User {
 
     public  User () {}
 
-    public User(String firstName, String lastName, String email) {
+    public User(String firstName, String lastName, String email, String photo) {
         FirstName = firstName;
         LastName = lastName;
         Email = email;
+        Photo = photo;
     }
 
     public String getFirstName() {
@@ -78,5 +81,19 @@ public class User {
 
     public void setPhoto(String photo) {
         Photo = photo;
+    }
+
+    @Override
+    public String toString() {
+        return FirstName + "/" +
+                LastName + "/" +
+                Email + "/" +
+                Photo;
+    }
+
+    public static User parseString (String userString) {
+        String[] userInfo = userString.split("/",4);
+        return new User(userInfo[0],userInfo[1],userInfo[2],userInfo[3]);
+
     }
 }

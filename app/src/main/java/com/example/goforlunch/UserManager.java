@@ -18,8 +18,8 @@ public class UserManager {
 
     // --- CREATE ---
 
-    public static Task<Void> createUser(String uid, String username, String urlPicture) {
-        User userToCreate = new User(uid, username, urlPicture);
+    public static Task<Void> createUser(String uid, String username, String email, String urlPicture) {
+        User userToCreate = new User(uid, username, email, urlPicture);
         return UserManager.getUsersCollection().document(uid).set(userToCreate);
     }
 

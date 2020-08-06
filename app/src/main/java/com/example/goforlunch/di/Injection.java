@@ -29,7 +29,7 @@ public class Injection {
     public static PredictionRepository providePredictionRepository(Context context) {
         PlacesClient placesClient;
         if (!Places.isInitialized()) {
-            Places.initialize(context, String.valueOf(R.string.google_api_key));
+            Places.initialize(context, context.getString(R.string.google_maps_key));
             Log.d("TAG", "onCreateView: initiliaze");
         }
         placesClient = Places.createClient(context);
