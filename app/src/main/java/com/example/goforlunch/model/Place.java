@@ -21,6 +21,10 @@ public class Place {
     @SerializedName("name")
     private String mName;
 
+    @SerializedName("vicinity")
+    private String mAddress;
+
+
     public Geometry getGeometry() {
         return mGeometry;
     }
@@ -40,4 +44,6 @@ public class Place {
     public String getName() {
         return mName;
     }
+
+    public String getAddress() { return mAddress; }
 }

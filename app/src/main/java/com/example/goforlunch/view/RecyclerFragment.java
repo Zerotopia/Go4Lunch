@@ -29,8 +29,12 @@ import com.example.goforlunch.R;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.WorkerAdapter;
 import com.example.goforlunch.di.Injection;
+import com.example.goforlunch.model.NearByPlace;
+import com.example.goforlunch.model.Place;
 import com.example.goforlunch.model.User;
+import com.example.goforlunch.viewmodel.NetworkViewModel;
 import com.example.goforlunch.viewmodel.PredictionViewModel;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
@@ -39,6 +43,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.goforlunch.view.PredictionAdapter.TAG;
 
 public class RecyclerFragment extends Fragment {
 
@@ -56,6 +62,7 @@ public class RecyclerFragment extends Fragment {
     private WorkerAdapter mWorkerAdapter;
     private PredictionViewModel mPredictionViewModel;
     private List<User> mUsers;
+    private boolean mList;
 
     private AdapterListener mAdapterListener;
 
@@ -77,12 +84,35 @@ public class RecyclerFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        final NetworkViewModel networkViewModel =
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
+        Log.d(TAG, "onActivityCreated: mapfragment viewModel");
+        networkViewModel.init();
+        Log.d(TAG, "onActivityCreated: mapfragment init");
+        observeViewModel(networkViewModel);
+        Log.d(TAG, "onActivityCreated: mapfragment observe");
 //        mPredictionViewModel =
 //                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(PredictionViewModel.class);
 //        mPredictionViewModel.init();
 //        observeViewModel();
     }
 
+    private void observeViewModel(NetworkViewModel networkViewModel) {
+        Log.d(TAG, "observeViewModel: mapfragment in observe");
+        networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
+        Log.d(TAG, "observeViewModel: mapgrgment fin observe");
+    }
+
+    private void updateNearByPlace(NearByPlace nearByPlace) {
+        Log.d(TAG, "updnAAAAAAAAAt");
+        if ((nearByPlace.getResults() != null) && (mList)){
+            Log.d(TAG, "updateNearByPlace: cool mapfragment  :: " + nearByPlace.getResults().size());
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+            mRecyclerView.setAdapter(new RestaurantAdapter(nearByPlace.getResults()));
+        }
+        else Log.d(TAG, "updateNearByPlace: Hmmmm mapfragment");
+    }
     //
 //    private void observeViewModel() {
 //        mPredictionViewModel.getPredictionObservable().observe(this, this::updateRestaurant);
@@ -107,9 +137,9 @@ public class RecyclerFragment extends Fragment {
         View listView = inflater.inflate(R.layout.fragment_recycler, container, false);
         mTextView = listView.findViewById(R.id.textfrag);
         mRecyclerView = listView.findViewById(R.id.fragment_recyclerview);
-        boolean list = (getArguments() == null) || getArguments().getBoolean(LIST_VIEW, true);
+        mList = (getArguments() == null) || getArguments().getBoolean(LIST_VIEW, true);
         Log.d("TAG", "onCreateView: ici");
-        if (list) mTextView.setText("List View");
+        if (mList) mTextView.setText("List View");
         else {
             mTextView.setText("List Worker");
             Log.d("TAG", "onCreateView: là ");
@@ -122,7 +152,7 @@ public class RecyclerFragment extends Fragment {
                 Log.d("TAG", "onCreateView: success");
 
                 mUsers = documentSnapshots.toObjects(User.class);
-               // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
+                // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
                 Log.d("TAG", "onCreateView: " + mUsers.size());
                 for (User user : mUsers) {
                     Log.d("TAG", "onCreateView: " + user.getEmail());
