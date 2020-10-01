@@ -44,7 +44,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
         Log.d("TAG", "onBindViewHolder: size list : " + mUserList.size());
         Log.d("TAG", "onBindViewHolder: position : " + position);
         User user = mUserList.get(position);
-        Log.d("TAG", "onBindViewHolder: user :  " + user.getFirstName());
+        Log.d("TAG", "onBindViewHolder: user :  " + user.getUserName());
         holder.setUser(user,mDetail);
         Log.d("TAG", "onBindViewHolder:  setUser done");
         holder.setImage(user);
@@ -76,17 +76,17 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
 
         public void setUser(User user, boolean detail) {
             if (detail)
-                choice.setText(user.getFirstName() + " is joining.");
+                choice.setText(user.getUserName() + " is joining.");
             else
-                choice.setText(user.getFirstName() + " lunch in" + user.getRestaurantId());
+                choice.setText(user.getUserName() + " lunch in" + user.getRestaurantId());
         }
 
         public void setImage(User user) {
-            Log.d("TAG", "setImage: " + mImagePath + user.getPhoto());
-            StorageReference imageref = mStorageReference.child(mImagePath + user.getPhoto());
-            Log.d("TAG", "setImage: after imgeref before download ");
-            imageref.getDownloadUrl().addOnSuccessListener(uri -> {
-                Log.d("TAG", "setImage:  addonsucces");
+            ////Log.d("TAG", "setImage: " + mImagePath + user.getPhoto());
+            ///StorageReference imageref = mStorageReference.child(mImagePath + user.getPhoto());
+            //Log.d("TAG", "setImage: after imgeref before download ");
+            //imageref.getDownloadUrl().addOnSuccessListener(uri -> {
+              //  Log.d("TAG", "setImage:  addonsucces");
                 RequestOptions options = new RequestOptions()
                         .centerCrop()
                         .placeholder(R.drawable.ic_launcher_background)
@@ -95,12 +95,12 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
                         .priority(Priority.HIGH);
                 Glide.with(itemView)
                         .setDefaultRequestOptions(options)
-                        .load(uri)
+                        .load(user.getPhoto())
                         .apply(RequestOptions.circleCropTransform())
                         .into(profil);
-            }).addOnFailureListener(e -> {
-                Log.d("TAG", "setImage:  fail : " + e.getMessage());
-            });
+            //}).addOnFailureListener(e -> {
+            //    Log.d("TAG", "setImage:  fail : " + e.getMessage());
+           // });
             Log.d("TAG", "setImage:  end");
         }
     }

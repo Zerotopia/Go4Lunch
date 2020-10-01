@@ -37,7 +37,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.goforlunch.MapActivity" />
+        <activity android:name="com.example.goforlunch.MapActivity"
+            android:theme="@style/AppTheme"/>
+        <activity android:name=".DetailActivity"/>
     </application>
 
 </manifest>

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.goforlunch.model.User;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -128,7 +129,12 @@ public class MainActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             //Log.d(TAG, "onComplete: " + user.toString() + ":: " + user.getEmail());
                            // user.sendEmailVerification();
-
+              //////////////////////Create User ///////////////////////////////////////////////
+                            UserManager.getUser(user.getUid()).addOnSuccessListener(documentSnapshot ->
+                            {
+                                if (documentSnapshot.toObject(User.class) == null)
+                                UserManager.createUser(user.getUid(),user.getDisplayName(),user.getEmail(),user.getPhotoUrl().toString());
+                            });
                             startMapActivity();
                         } else {
                             // If sign in fails, display a message to the user.

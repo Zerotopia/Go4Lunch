@@ -295,7 +295,7 @@ public class RecyclerFragment extends Fragment {
         List<User> newList = new ArrayList<>();
         if (mUsers != null) {
             for (User user : mUsers) {
-                if ((user.getFirstName().startsWith(newText)) || (user.getLastName().startsWith(newText))) {
+                if ((user.getUserName().startsWith(newText))) {// || (user.getLastName().startsWith(newText))) {
                     newList.add(user);
                 }
             }

@@ -7,6 +7,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+
 public class UserManager {
     private static final String COLLECTION_NAME = "users";
 
@@ -18,8 +19,8 @@ public class UserManager {
 
     // --- CREATE ---
 
-    public static Task<Void> createUser(String uid, String username, String email, String urlPicture) {
-        User userToCreate = new User(uid, username, email, urlPicture);
+    public static Task<Void> createUser(String uid, String userName, String email, String photo) {
+        User userToCreate = new User(userName, email, photo);
         return UserManager.getUsersCollection().document(uid).set(userToCreate);
     }
 
@@ -32,14 +33,14 @@ public class UserManager {
     public static Task<QuerySnapshot> getAllUser(){
         return UserManager.getUsersCollection().get();
     }
+
+    public static Task<QuerySnapshot>getUsersInRestaurant(String uid) {
+        return UserManager.getUsersCollection().whereEqualTo("RestaurantId",uid).get();
+    }
     // --- UPDATE ---
 
     public static Task<Void> updateUsername(String username, String uid) {
-        return UserManager.getUsersCollection().document(uid).update("username", username);
-    }
-
-    public static Task<Void> updateIsMentor(String uid, Boolean isMentor) {
-        return UserManager.getUsersCollection().document(uid).update("isMentor", isMentor);
+        return UserManager.getUsersCollection().document(uid).update("Username", username);
     }
 
     // --- DELETE ---

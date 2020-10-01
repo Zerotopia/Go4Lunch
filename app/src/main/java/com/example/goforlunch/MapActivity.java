@@ -46,6 +46,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     public static final String NAME_RESTAURANT = "NAMERESTAURANT";
     public static final String ADDR_RESTAURANT = "ADDRESSE";
     public static final String LIST_USER_STRING = "USERS_STRING";
+    public static final String UID_RESTAURANT = "UID";
     private static final String TAG = "TAG";
     private BottomNavigationView mBottomNavigationView;
     private RecyclerFragment mRecyclerFragment;
@@ -256,11 +257,13 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     @Override
     public void setSearchMarker(GoogleMap map) {
-        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
-            String placeData = (String) parent.getItemAtPosition(position);
-            AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
+      //  if (mSearchAutoComplete != null)
+      // mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+       //     String placeData = (String) parent.getItemAtPosition(position);
+         //   AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
             // pred.getPlaceId()
-        });
+      // });
+      //  else Log.d(TAG, "setSearchMarker: setNULLL");
 
     }
 }

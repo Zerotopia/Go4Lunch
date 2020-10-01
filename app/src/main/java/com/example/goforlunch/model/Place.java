@@ -12,7 +12,7 @@ public class Place {
     @SerializedName("icon")
     private String mIconUrl;
 
-    @SerializedName("id")
+    @SerializedName("reference")
     private String mId;
 
     @SerializedName("photos")
@@ -23,6 +23,12 @@ public class Place {
 
     @SerializedName("vicinity")
     private String mAddress;
+
+    @SerializedName("rating")
+    private double mRatio;
+
+    @SerializedName("opening_hours")
+    private OpenHours mOpen;
 
 
     public Geometry getGeometry() {
@@ -46,4 +52,12 @@ public class Place {
     }
 
     public String getAddress() { return mAddress; }
+
+    public Double getRatio() {
+        return mRatio;
+    }
+
+    public OpenHours getOpen() {
+        return mOpen;
+    }
 }

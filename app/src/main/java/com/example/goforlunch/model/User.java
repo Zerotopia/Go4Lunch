@@ -1,12 +1,15 @@
 package com.example.goforlunch.model;
 
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.model.value.ReferenceValue;
+
 import java.nio.file.attribute.UserPrincipalLookupService;
 
 public class User {
     //@SerializedName("FirstName")
-    private String FirstName;
+    private String UserName;
     //@SerializedName("LastName")
-    private String LastName;
+    //private String LastName;
     ///@SerializedName("Email")
     private String Email;
    // private boolean mIsActive;
@@ -15,32 +18,23 @@ public class User {
    // @SerializedName("Photo")
     private String Photo;
    // @SerializedName("RestaurantId")
-    private int RestaurantId;
+    private String RestaurantId;
 
 
     public  User () {}
 
-    public User(String firstName, String lastName, String email, String photo) {
-        FirstName = firstName;
-        LastName = lastName;
+    public User(String userName, String email, String photo) {
+        UserName = userName;
         Email = email;
         Photo = photo;
     }
 
-    public String getFirstName() {
-        return FirstName;
+    public String getUserName() {
+        return UserName;
     }
 
-    public void setFirstName(String firstName) {
-        FirstName = firstName;
-    }
-
-    public String getLastName() {
-        return LastName;
-    }
-
-    public void setLastName(String lastName) {
-        LastName = lastName;
+    public void setUserName(String userName) {
+        UserName = userName;
     }
 
     public String getEmail() {
@@ -59,12 +53,12 @@ public class User {
    //     mIsActive = active;
    // }
 
-    public int getRestaurantId() {
+    public String getRestaurantId() {
         return RestaurantId;
     }
 
-    public void setRestaurantId(int restaurantId) {
-        this.RestaurantId = restaurantId;
+    public void setRestaurantId(String restaurantId) {
+        RestaurantId = restaurantId;
     }
 
 //    public int getUserId() {
@@ -85,15 +79,14 @@ public class User {
 
     @Override
     public String toString() {
-        return FirstName + "/" +
-                LastName + "/" +
+        return UserName + "/" +
                 Email + "/" +
                 Photo;
     }
 
     public static User parseString (String userString) {
-        String[] userInfo = userString.split("/",4);
-        return new User(userInfo[0],userInfo[1],userInfo[2],userInfo[3]);
+        String[] userInfo = userString.split("/",3);
+        return new User(userInfo[0],userInfo[1],userInfo[2]);
 
     }
 }

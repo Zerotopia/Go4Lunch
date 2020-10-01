@@ -2,6 +2,9 @@ package com.example.goforlunch.view;
 
 import android.content.Context;
 import android.gesture.Prediction;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -27,6 +30,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
@@ -69,7 +74,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         Log.d(TAG, "observeViewModel: mapfragment in observe");
         networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
         Log.d(TAG, "observeViewModel: mapgrgment fin observe");
-           }
+    }
 
     private void updateNearByPlace(NearByPlace nearByPlace) {
         mNearByPlace = nearByPlace;
@@ -79,7 +84,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             if (nearByPlace.getResults() != null) Log.d(TAG, "updateNearByPlace: cool mapfragment");
             else Log.d(TAG, "updateNearByPlace: Hmmmm mapfragment");
             for (Place p : nearByPlace.getResults()) {
-                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName() + p.getGeometry().getCoordinate().toString()));
+                mMap.addMarker(new MarkerOptions()
+                        .position(p.getGeometry().getCoordinate())
+                        .title(p.getName() + p.getGeometry().getCoordinate().toString())
+                        .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
                 Log.d(TAG, "updateNearByPlace: mark mapfragment");
             }
         } else Log.d(TAG, "updateNearByPlace: null mapfragment");
@@ -117,7 +125,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private LatLng initialPosition() {
-        return new LatLng(47.390289,0.688850);
+        return new LatLng(47.390289, 0.688850);
     }
 
     @Override
@@ -128,7 +136,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (mNearByPlace != null) {
             for (Place p : mNearByPlace.getResults()) {
                 Log.d(TAG, "onMapReady: marker mapfragment");
-                mMap.addMarker(new MarkerOptions().position(p.getGeometry().getCoordinate()).title(p.getName() + p.getGeometry().getCoordinate().toString()));
+                mMap.addMarker(new MarkerOptions()
+                        .position(p.getGeometry().getCoordinate())
+                        .title(p.getName() + p.getGeometry().getCoordinate().toString())
+                        .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
             }
         }
         //mMap.addMarker(new MarkerOptions().position(initialPosition()).title("Centre du monde"));
@@ -175,11 +186,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void updateUI(LatLng latLng) {
         if (mMap != null) {
             mMap.clear();
-            mMap.addMarker(new MarkerOptions().position(latLng));
+            mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
         }
     }
 
     public interface MapMarkerListener {
-        void setSearchMarker (GoogleMap map);
+        void setSearchMarker(GoogleMap map);
     }
+
+    private BitmapDescriptor getBitmap(int drawableRes) {
+        Drawable drawable = getResources().getDrawable(drawableRes);
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
 }
+
+

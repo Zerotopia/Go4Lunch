@@ -2,6 +2,7 @@ package com.example.goforlunch;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,13 +16,19 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DetailActivity  extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity {
 
     private ImageView mRestaurantPicture;
     private TextView mRestaurantName;
@@ -36,6 +43,7 @@ public class DetailActivity  extends AppCompatActivity {
     private String mNameRestaurant;
     private String mAddressRestaurant;
     private List<User> mUsers = new ArrayList<>();
+    private String uid;
 
 
     @Override
@@ -55,8 +63,18 @@ public class DetailActivity  extends AppCompatActivity {
         mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
         mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
         mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
-        List<String> usersString = intent.getStringArrayListExtra(MapActivity.LIST_USER_STRING);
-        for (String userString : usersString) mUsers.add(User.parseString(userString));
+        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
+
+        //if (restaurant exist)
+       // RestaurantManager.createRestaurant(uid);
+
+        UserManager.getUsersInRestaurant(uid).addOnSuccessListener(queryDocumentSnapshots -> {
+            mUsers = queryDocumentSnapshots.toObjects(User.class);
+            mLuncherList.setLayoutManager(new LinearLayoutManager(this));
+            mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+        });
+       // List<String> usersString = intent.getStringArrayListExtra(MapActivity.LIST_USER_STRING);
+        //for (String userString : usersString) mUsers.add(User.parseString(userString));
 
 
         RequestOptions options = new RequestOptions()
@@ -73,8 +91,32 @@ public class DetailActivity  extends AppCompatActivity {
 
         mRestaurantAddress.setText(mNameRestaurant);
         mRestaurantAddress.setText(mAddressRestaurant);
-        mLuncherList.setLayoutManager(new LinearLayoutManager(this));
-        mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
 
+
+        mCallButton.setOnClickListener(view -> {
+           callOnClickListener();
+        });
+
+        mLikeButton.setOnClickListener(view -> {
+            likeOnClickListener();
+        });
+
+        mWebsiteButton.setOnClickListener(view -> {
+            webOnClickListener();
+        });
+
+    }
+
+    private void webOnClickListener() {
+        Intent intent = new Intent(DetailActivity.this, WebActivity.class);
+        startActivity(intent);
+
+    }
+
+    private void likeOnClickListener() {
+
+    }
+
+    private void callOnClickListener() {
     }
 }
