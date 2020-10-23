@@ -43,6 +43,10 @@ public class UserManager {
         return UserManager.getUsersCollection().document(uid).update("Username", username);
     }
 
+    public static Task<Void> updateUserRestaurant(String restaurantId, String uid) {
+        return UserManager.getUsersCollection().document(uid).update("RestaurantId", restaurantId);
+    }
+
     // --- DELETE ---
 
     public static Task<Void> deleteUser(String uid) {

@@ -9,6 +9,7 @@ import com.example.goforlunch.repository.PredictionRepository;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.LocationBias;
+import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 
 import java.util.List;
@@ -26,6 +27,8 @@ public class PredictionViewModel extends ViewModel {
             = Transformations.switchMap(mQuery, (query) -> mPredictionRepository.getPlacePredictions(query, BIAS));
     private final LiveData<LatLng> mLocationObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlaceLocation(placeId));
+    private  final LiveData<Place> mPhoneObservable =
+            Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlacePhone(placeId));
 
     public PredictionViewModel(PredictionRepository predictionRepository) {
         mPredictionRepository = predictionRepository;
@@ -46,4 +49,6 @@ public class PredictionViewModel extends ViewModel {
     }
 
     public final LiveData<LatLng> getLocationObservable() { return mLocationObservable; }
+
+    public final LiveData<Place> getmPhoneObservable() { return  mPhoneObservable; }
 }

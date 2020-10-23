@@ -3,8 +3,11 @@ package com.example.goforlunch.di;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.lifecycle.ViewModelProvider;
+
 import com.example.goforlunch.MapClient;
 import com.example.goforlunch.R;
+import com.example.goforlunch.repository.LikeRepository;
 import com.example.goforlunch.repository.NetworkRepository;
 import com.example.goforlunch.repository.PredictionRepository;
 import com.example.goforlunch.viewmodel.ViewModelFactory;
@@ -21,9 +24,9 @@ public class Injection {
         return new NetworkRepository(MapClient.getInstance());
     }
 
-    public static ViewModelFactory provideNetworkViewModelFactory(Context context) {
+    public static ViewModelFactory provideNetworkViewModelFactory(Context context, String userId) {
         Log.d(TAG, "provideNetworkViewModelFactory: Injection");
-        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context));
+        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository(userId));
     }
 
     public static PredictionRepository providePredictionRepository(Context context) {
@@ -35,5 +38,10 @@ public class Injection {
         placesClient = Places.createClient(context);
         return new PredictionRepository(placesClient, AutocompleteSessionToken.newInstance());
     }
+
+    public static LikeRepository provideLikeRepository(String userId) {
+        return new LikeRepository(userId);
+    }
+
 
 }

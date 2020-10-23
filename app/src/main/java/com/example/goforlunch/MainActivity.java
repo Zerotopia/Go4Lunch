@@ -5,7 +5,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -130,12 +132,23 @@ public class MainActivity extends AppCompatActivity {
                             //Log.d(TAG, "onComplete: " + user.toString() + ":: " + user.getEmail());
                            // user.sendEmailVerification();
               //////////////////////Create User ///////////////////////////////////////////////
+                            Log.d("CONNEXION", "onComplete:  before ifusernull");
+                            if (user != null) {
+                                Log.d("CONNEXION", "onComplete: userOK");
                             UserManager.getUser(user.getUid()).addOnSuccessListener(documentSnapshot ->
                             {
                                 if (documentSnapshot.toObject(User.class) == null)
                                 UserManager.createUser(user.getUid(),user.getDisplayName(),user.getEmail(),user.getPhotoUrl().toString());
+
                             });
-                            startMapActivity();
+                                Log.d("CONNEXION", "onComplete:  start preference");
+                                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                                SharedPreferences.Editor edit = preferences.edit();
+                                Log.d("CONNEXION", "onComplete: id = " + user.getUid());
+                                edit.putString(MapActivity.CURRENTID, user.getUid());
+                                edit.apply();
+
+                                startMapActivity(); }
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());

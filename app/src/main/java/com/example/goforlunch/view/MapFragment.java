@@ -1,6 +1,7 @@
 package com.example.goforlunch.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -20,6 +21,8 @@ import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.goforlunch.DetailActivity;
+import com.example.goforlunch.MapActivity;
 import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
@@ -33,12 +36,13 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 
 import java.util.List;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     public static final String TAG = "TAG";
 
     private static final String LATITUDE = "LAT";
@@ -61,7 +65,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "onActivityCreated: mapfragment super");
         final NetworkViewModel networkViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext(), "")).get(NetworkViewModel.class);
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
         networkViewModel.init();
         Log.d(TAG, "onActivityCreated: mapfragment init");
@@ -86,10 +90,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             for (Place p : nearByPlace.getResults()) {
                 mMap.addMarker(new MarkerOptions()
                         .position(p.getGeometry().getCoordinate())
-                        .title(p.getName() + p.getGeometry().getCoordinate().toString())
-                        .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
+                        .title(p.getName() + p.getGeometry().getCoordinate().toString()));
+                   //     .icon(getBitmap(R.drawable.ic_baseline_restaurant_24))).setTag(p);
+
+
                 Log.d(TAG, "updateNearByPlace: mark mapfragment");
             }
+            mMap.setOnMarkerClickListener(this);
         } else Log.d(TAG, "updateNearByPlace: null mapfragment");
 
     }
@@ -138,13 +145,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 Log.d(TAG, "onMapReady: marker mapfragment");
                 mMap.addMarker(new MarkerOptions()
                         .position(p.getGeometry().getCoordinate())
-                        .title(p.getName() + p.getGeometry().getCoordinate().toString())
-                        .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
+                        .title(p.getName() + p.getGeometry().getCoordinate().toString()));
+                       // .icon(getBitmap(R.drawable.ic_baseline_restaurant_24))).setTag(p);
             }
         }
         //mMap.addMarker(new MarkerOptions().position(initialPosition()).title("Centre du monde"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(initialPosition()));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+        mMap.setOnMarkerClickListener(this);
     }
 
     @Override
@@ -190,6 +198,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     .position(latLng)
                     .icon(getBitmap(R.drawable.ic_baseline_restaurant_24)));
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Place p = (Place) marker.getTag();
+        if (p != null) {
+        Intent intent = new Intent(getContext(), DetailActivity.class);
+        String urlPhoto = p.getPhotos().get(0).getPhotoRef() + getContext().getString(R.string.google_maps_key);
+        intent.putExtra(MapActivity.URL_IMAGE,urlPhoto);
+        intent.putExtra(MapActivity.NAME_RESTAURANT,p.getName());
+        intent.putExtra(MapActivity.UID_RESTAURANT,p.getId());
+        intent.putExtra(MapActivity.ADDR_RESTAURANT,p.getAddress());
+        getContext().startActivity(intent);
+        return true; }
+        return false;
     }
 
     public interface MapMarkerListener {

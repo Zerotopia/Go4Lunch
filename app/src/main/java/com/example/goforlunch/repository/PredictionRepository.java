@@ -101,4 +101,34 @@ public class PredictionRepository {
         return data;
 
     }
+
+    public MutableLiveData<Place> getPlacePhone(String placeId) {
+        final MutableLiveData<Place> data = new MutableLiveData<>();
+        final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER,Place.Field.WEBSITE_URI);
+        final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+        mPlacesClient.fetchPlace(request).addOnSuccessListener(fetchPlaceResponse -> {
+            Log.d("TAG", "getPlaceLocation: notNPE1");
+            if (fetchPlaceResponse != null) {
+                Log.d("TAG", "getPlaceLocation: fetchnonnull : " + fetchPlaceResponse.toString());
+                if (fetchPlaceResponse.getPlace() != null) {
+                    //String[] dataArray = {fetchPlaceResponse.getPlace().getPhoneNumber(); //,fetchPlaceResponse.getPlace().getWebsiteUri()};
+                    Log.d("TAG", "getPlaceLocation: before datasetvalue : " + fetchPlaceResponse.getPlace().toString());
+                    Log.d("TAG", "getPlaceLocation: value " + fetchPlaceResponse.getPlace().getLatLng());
+                    data.setValue(fetchPlaceResponse.getPlace());
+                } else
+                    Log.d("TAG", "getPlaceLocation: notNPE2");
+                Log.d("TAG", "getPlaceLocation: setvalueOK");
+            }
+        }).addOnFailureListener((exception) -> {
+            if (exception instanceof ApiException) {
+                final ApiException apiException = (ApiException) exception;
+                Log.e("TAG", "Place not found: " + exception.getMessage());
+                final int statusCode = apiException.getStatusCode();
+                // TODO: Handle error with given status code.
+            }
+        });
+
+        return data;
+
+    }
 }

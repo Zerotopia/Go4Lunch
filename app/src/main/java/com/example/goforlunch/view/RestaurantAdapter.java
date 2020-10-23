@@ -22,8 +22,10 @@ import com.example.goforlunch.RestaurantManager;
 import com.example.goforlunch.WorkerAdapter;
 import com.example.goforlunch.model.NearByPlace;
 import com.example.goforlunch.model.Place;
+import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.repository.NetworkRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
@@ -77,8 +79,21 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             ratio = itemView.findViewById(R.id.ratio);
             restaurantPicture = itemView.findViewById(R.id.restaurant_picture);
             itemView.setOnClickListener(view -> {
-                RestaurantManager.createRestaurant(place.getId());
+               // final List<String> likers = new ArrayList<>();
                 Intent intent = new Intent(itemView.getContext(), DetailActivity.class);
+
+                RestaurantManager.getRestaurant(place.getId()).addOnSuccessListener(documentSnapshot -> {
+                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                   if (currentRestaurant == null) {
+                       RestaurantManager.createRestaurant(place.getId());
+                       RestaurantManager.updateRestaurantName(place.getName(),place.getId());
+                       intent.putExtra(MapActivity.LIST_LIKERS,new ArrayList<String>());
+                   } else {
+                       intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) currentRestaurant.getLikers());
+                   }
+                });
+
+
                 intent.putExtra(MapActivity.URL_IMAGE,urlPhoto());
                 intent.putExtra(MapActivity.NAME_RESTAURANT,place.getName());
                 intent.putExtra(MapActivity.UID_RESTAURANT,place.getId());

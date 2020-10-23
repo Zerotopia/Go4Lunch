@@ -38,8 +38,12 @@ public class RestaurantManager {
     }
     // --- UPDATE ---
 
-    public static Task<Void> updateRestaurantname(List<String> likers, String uid) {
+    public static Task<Void> updateRestaurantLikers(List<String> likers, String uid) {
         return getRestaurantsCollection().document(uid).update("Likers", likers);
+    }
+
+    public static Task<Void> updateRestaurantName(String name, String uid) {
+        return getRestaurantsCollection().document(uid).update("Name", name);
     }
 
     // --- DELETE ---
