@@ -11,19 +11,19 @@ import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 
+import java.util.List;
+
 public class LikeRepository {
 
-    private String mUserId;
+    public LikeRepository() {
 
-    public LikeRepository(String mUserId) {
-        this.mUserId = mUserId;
     }
 
-    public MutableLiveData<Boolean> isLike(String restaurantId) {
+    public MutableLiveData<Boolean> isLike(String restaurantId, String userId) {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {
             Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
-            if ((restaurant.getLikers() != null) && (restaurant.getLikers().contains(mUserId)))
+            if ((restaurant.getLikers() != null) && (restaurant.getLikers().contains(userId)))
                 data.setValue(true);
             else
                 data.setValue(false);
@@ -31,14 +31,22 @@ public class LikeRepository {
         return data;
     }
 
-    public MutableLiveData<Boolean> isLunch(String restaurantId) {
+    public MutableLiveData<Boolean> isLunch(String restaurantId, String userId) {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
-        UserManager.getUser(mUserId).addOnSuccessListener(documentSnapshot -> {
+        UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
             User user = documentSnapshot.toObject(User.class);
             if (user.getRestaurantId().equals(restaurantId))
                 data.setValue(true);
             else
                 data.setValue(false);
+        });
+        return data;
+    }
+
+    public MutableLiveData<List<User>> getUsers(String restaurantId) {
+        MutableLiveData<List<User>> data = new MutableLiveData<>();
+        UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
+           data.setValue(queryDocumentSnapshots.toObjects(User.class));
         });
         return data;
     }

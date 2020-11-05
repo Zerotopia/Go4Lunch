@@ -103,23 +103,27 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         mPredictionViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this, "")).get(PredictionViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
         observeViewModel();
         mPredictionViewModel.newPos(uid);
 
-        mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this, mCurrentId)).get(LikeViewModel.class);
+        mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(LikeViewModel.class);
+        if (mLikeViewModel == null) Log.d("TAGM", "onCreate: Likemodel NULL");
+        else Log.d("TAGM", "onCreate: NONNULL");
+        mLikeViewModel.init(uid,mCurrentId);
         observeLike();
         observeLunch();
-        mLikeViewModel.isUpdate(uid);
+        observeLuncher();
+
 
         //if (restaurant exist)
         // RestaurantManager.createRestaurant(uid);
 
-        UserManager.getUsersInRestaurant(mNameRestaurant).addOnSuccessListener(queryDocumentSnapshots -> {
-            mUsers = queryDocumentSnapshots.toObjects(User.class);
-            mLuncherList.setLayoutManager(new LinearLayoutManager(this));
-            mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
-        });
+//        UserManager.getUsersInRestaurant(uid).addOnSuccessListener(queryDocumentSnapshots -> {
+//            mUsers = queryDocumentSnapshots.toObjects(User.class);
+//            mLuncherList.setLayoutManager(new LinearLayoutManager(this));
+//            mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+//        });
         // List<String> usersString = intent.getStringArrayListExtra(MapActivity.LIST_USER_STRING);
         //for (String userString : usersString) mUsers.add(User.parseString(userString));
 
@@ -136,7 +140,7 @@ public class DetailActivity extends AppCompatActivity {
                 //  .apply
                 .into(mRestaurantPicture);
 
-        mRestaurantAddress.setText(mNameRestaurant);
+        mRestaurantName.setText(mNameRestaurant);
         mRestaurantAddress.setText(mAddressRestaurant);
 
 //        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
@@ -171,6 +175,16 @@ public class DetailActivity extends AppCompatActivity {
 
     }
 
+    private void observeLuncher() {
+        mLikeViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
+    }
+
+    private void setLuncherAdapter(List<User> users) {
+        mUsers = users;
+        mLuncherList.setLayoutManager(new LinearLayoutManager(this));
+        mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+    }
+
     private void observeLunch() {
         mLikeViewModel.getIsLunch().observe(this, this::updateFloatingButton);
     }
@@ -188,7 +202,8 @@ public class DetailActivity extends AppCompatActivity {
     private void addOnclicklistener() {
         if (mLunch) UserManager.updateUserRestaurant("", mCurrentId);
         else UserManager.updateUserRestaurant(uid, mCurrentId);
-        mLikeViewModel.isUpdate(uid);
+        mLikeViewModel.changeUserRestaurant();
+      //  mLikeViewModel.init(uid,mCurrentId);
 
     }
 
@@ -227,8 +242,7 @@ public class DetailActivity extends AppCompatActivity {
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
         RestaurantManager.updateRestaurantLikers(mLikers, uid);
-        mLikeViewModel.isUpdate(uid);
-
+        mLikeViewModel.changeLike();
     }
 
     private void callOnClickListener() {

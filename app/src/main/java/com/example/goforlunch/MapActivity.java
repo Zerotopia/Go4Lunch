@@ -83,7 +83,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mNavigationView.setNavigationItemSelectedListener(this);
 
         mPredictionViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this, "")).get(PredictionViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
         mPredictionViewModel.init();
         observeViewModel();
 

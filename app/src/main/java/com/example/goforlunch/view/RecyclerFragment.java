@@ -85,7 +85,7 @@ public class RecyclerFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final NetworkViewModel networkViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext(), "")).get(NetworkViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
         networkViewModel.init();
         Log.d(TAG, "onActivityCreated: mapfragment init");

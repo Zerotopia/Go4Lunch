@@ -24,9 +24,9 @@ public class Injection {
         return new NetworkRepository(MapClient.getInstance());
     }
 
-    public static ViewModelFactory provideNetworkViewModelFactory(Context context, String userId) {
+    public static ViewModelFactory provideNetworkViewModelFactory(Context context) {
         Log.d(TAG, "provideNetworkViewModelFactory: Injection");
-        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository(userId));
+        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository());
     }
 
     public static PredictionRepository providePredictionRepository(Context context) {
@@ -39,8 +39,8 @@ public class Injection {
         return new PredictionRepository(placesClient, AutocompleteSessionToken.newInstance());
     }
 
-    public static LikeRepository provideLikeRepository(String userId) {
-        return new LikeRepository(userId);
+    public static LikeRepository provideLikeRepository() {
+        return new LikeRepository();
     }
 
 

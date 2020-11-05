@@ -65,7 +65,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "onActivityCreated: mapfragment super");
         final NetworkViewModel networkViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext(), "")).get(NetworkViewModel.class);
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
         networkViewModel.init();
         Log.d(TAG, "onActivityCreated: mapfragment init");
@@ -91,7 +91,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 mMap.addMarker(new MarkerOptions()
                         .position(p.getGeometry().getCoordinate())
                         .title(p.getName() + p.getGeometry().getCoordinate().toString()));
-                   //     .icon(getBitmap(R.drawable.ic_baseline_restaurant_24))).setTag(p);
+                      //  .icon(getBitmap(R.drawable.))).setTag(p);
 
 
                 Log.d(TAG, "updateNearByPlace: mark mapfragment");
