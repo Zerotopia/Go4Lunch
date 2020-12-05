@@ -32,7 +32,7 @@ public class LikeViewModel extends ViewModel {
     public void init(String restaurantId, String userId) {
         mLikeObservable = mLikeRepository.isLike(restaurantId,userId);
         mUserRestaurantObservable = mLikeRepository.isLunch(restaurantId,userId);
-        mUsersObservable = mLikeRepository.getUsers(restaurantId);
+        mUsersObservable = mLikeRepository.getUsers(restaurantId,userId);
     }
 
     public void changeLike() {

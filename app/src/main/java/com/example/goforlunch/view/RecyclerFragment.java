@@ -1,8 +1,10 @@
 package com.example.goforlunch.view;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,6 +27,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.goforlunch.MapActivity;
 import com.example.goforlunch.R;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.WorkerAdapter;
@@ -65,11 +68,13 @@ public class RecyclerFragment extends Fragment {
     private boolean mList;
 
     private AdapterListener mAdapterListener;
+    private SharedPreferences mPreferences;
+    private String mCurrentId;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        mAdapterListener = (AdapterListener) context;
+//        mAdapterListener = (AdapterListener) context;
     }
 
     @NonNull
@@ -84,6 +89,11 @@ public class RecyclerFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
+        Log.d(TAG, "onActivityCreated: ID" + mCurrentId);
+
         final NetworkViewModel networkViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
@@ -144,19 +154,22 @@ public class RecyclerFragment extends Fragment {
             mTextView.setText("List Worker");
             Log.d("TAG", "onCreateView: là ");
             UserManager.getAllUser().addOnSuccessListener(documentSnapshots -> {
-//                mUsers = new ArrayList<>();
-//                for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
-//                    User user = document.toObject(User.class);
-//                    mUsers.add(user);
-//                }
+                mUsers = new ArrayList<>();
+                for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
+                    if (!document.getId().equals(mCurrentId)) {
+                        Log.d(TAG, "onCreateView: fordoc " + document.getId());
+                        User user = document.toObject(User.class);
+                        mUsers.add(user);
+                    }
+                }
                 Log.d("TAG", "onCreateView: success");
 
-                mUsers = documentSnapshots.toObjects(User.class);
+               // mUsers = documentSnapshots.toObjects(User.class);
                 // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
-                Log.d("TAG", "onCreateView: " + mUsers.size());
-                for (User user : mUsers) {
-                    Log.d("TAG", "onCreateView: " + user.getEmail());
-                }
+                //Log.d("TAG", "onCreateView: " + mUsers.size());
+                //for (User user : mUsers) {
+                //    Log.d("TAG", "onCreateView: " + user.getEmail());
+                //}
                 Log.d("TAG", "onCreateView: muserok");
                 LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
                 mRecyclerView.setLayoutManager(layoutManager);

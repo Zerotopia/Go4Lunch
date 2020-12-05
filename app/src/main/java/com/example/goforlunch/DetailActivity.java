@@ -1,22 +1,18 @@
 package com.example.goforlunch;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -31,18 +27,11 @@ import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.viewmodel.LikeViewModel;
 import com.example.goforlunch.viewmodel.PredictionViewModel;
-import com.example.goforlunch.viewmodel.ViewModelFactory;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -76,7 +65,7 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.detail);
+        setContentView(R.layout.activity_detail);
 
         mRestaurantPicture = findViewById(R.id.detail_imageview);
         mRestaurantName = findViewById(R.id.detail_restaurant_name);
@@ -101,6 +90,8 @@ public class DetailActivity extends AppCompatActivity {
             mLikers = new ArrayList<>();
             Log.d("TAG", "onCreate: null");
         }
+
+        Log.d("TAG", ": In detailactivity : url :" + mUrlImage + ", namer : " + mNameRestaurant + ", id: " + uid + ", addr: " + mAddressRestaurant);
 
         mPredictionViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
@@ -200,11 +191,22 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void addOnclicklistener() {
+        createRestaurant();
         if (mLunch) UserManager.updateUserRestaurant("", mCurrentId);
         else UserManager.updateUserRestaurant(uid, mCurrentId);
         mLikeViewModel.changeUserRestaurant();
       //  mLikeViewModel.init(uid,mCurrentId);
 
+    }
+
+    private void createRestaurant() {
+              RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
+                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                   if (currentRestaurant == null) {
+                       RestaurantManager.createRestaurant(uid);
+                       RestaurantManager.updateRestaurantName(mNameRestaurant,uid);
+                   }
+                });
     }
 
     private void observeViewModel() {
@@ -239,6 +241,7 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void likeOnClickListener() {
+        createRestaurant();
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
         RestaurantManager.updateRestaurantLikers(mLikers, uid);

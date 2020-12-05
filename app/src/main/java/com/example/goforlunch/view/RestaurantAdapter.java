@@ -2,6 +2,7 @@ package com.example.goforlunch.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.goforlunch.DetailActivity;
+import com.example.goforlunch.ListItemClickListener;
 import com.example.goforlunch.MapActivity;
 import com.example.goforlunch.R;
 import com.example.goforlunch.RestaurantManager;
@@ -80,26 +82,28 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             restaurantPicture = itemView.findViewById(R.id.restaurant_picture);
             itemView.setOnClickListener(view -> {
                // final List<String> likers = new ArrayList<>();
-                Intent intent = new Intent(itemView.getContext(), DetailActivity.class);
-
-                RestaurantManager.getRestaurant(place.getId()).addOnSuccessListener(documentSnapshot -> {
-                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-                   if (currentRestaurant == null) {
-                       RestaurantManager.createRestaurant(place.getId());
-                       RestaurantManager.updateRestaurantName(place.getName(),place.getId());
-                       intent.putExtra(MapActivity.LIST_LIKERS,new ArrayList<String>());
-                   } else {
-                       intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) currentRestaurant.getLikers());
-                   }
-                });
-
-
-                intent.putExtra(MapActivity.URL_IMAGE,urlPhoto());
-                intent.putExtra(MapActivity.NAME_RESTAURANT,place.getName());
-                intent.putExtra(MapActivity.UID_RESTAURANT,place.getId());
-                intent.putExtra(MapActivity.ADDR_RESTAURANT,place.getAddress());
-                itemView.getContext().startActivity(intent);
-            });
+//                Intent intent = new Intent(itemView.getContext(), DetailActivity.class);
+//
+//                RestaurantManager.getRestaurant(place.getId()).addOnSuccessListener(documentSnapshot -> {
+//                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+//                   if (currentRestaurant == null) {
+//                       RestaurantManager.createRestaurant(place.getId());
+//                       RestaurantManager.updateRestaurantName(place.getName(),place.getId());
+//                       intent.putExtra(MapActivity.LIST_LIKERS,new ArrayList<String>());
+//                   } else {
+//                       intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) currentRestaurant.getLikers());
+//                   }
+//                });
+//
+//
+//                intent.putExtra(MapActivity.URL_IMAGE,urlPhoto());
+//                intent.putExtra(MapActivity.NAME_RESTAURANT,place.getName());
+//                intent.putExtra(MapActivity.UID_RESTAURANT,place.getId());
+//                intent.putExtra(MapActivity.ADDR_RESTAURANT,place.getAddress());
+//                Log.d("TAG", "onrestaurantclick: before detailactivity : url :" + urlPhoto() + ", namer : " + place.getName() + ", id: " + place.getId() + ", addr: " + place.getAddress());
+//                itemView.getContext().startActivity(intent);
+                ((ListItemClickListener) itemView.getContext()).itemClick(urlPhoto(),place);
+           });
         }
 
         private String urlPhoto(){

@@ -30,6 +30,9 @@ public class PredictionViewModel extends ViewModel {
     private  final LiveData<Place> mPhoneObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlacePhone(placeId));
 
+    private final LiveData<List<String>> mLikersObservable =
+            Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getLikers(placeId));
+
     public PredictionViewModel(PredictionRepository predictionRepository) {
         mPredictionRepository = predictionRepository;
     }
@@ -51,4 +54,6 @@ public class PredictionViewModel extends ViewModel {
     public final LiveData<LatLng> getLocationObservable() { return mLocationObservable; }
 
     public final LiveData<Place> getmPhoneObservable() { return  mPhoneObservable; }
+
+    public  final LiveData<List<String>> getmLikersObservable() { return  mLikersObservable; }
 }

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.goforlunch.model.User;
@@ -159,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
+
 
 //    private void startSignInActivity() {
 //        AuthMethodPickerLayout authMethodPickerLayout = new AuthMethodPickerLayout

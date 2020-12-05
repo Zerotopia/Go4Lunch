@@ -4,6 +4,9 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.goforlunch.MapActivity;
+import com.example.goforlunch.RestaurantManager;
+import com.example.goforlunch.model.Restaurant;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
@@ -130,5 +133,21 @@ public class PredictionRepository {
 
         return data;
 
+    }
+
+
+    public MutableLiveData<List<String>> getLikers(String restaurantId) {
+        final MutableLiveData<List<String>> data = new MutableLiveData<>();
+        RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {
+            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+            if (currentRestaurant == null) {
+               // RestaurantManager.createRestaurant(restaurantId);
+               // RestaurantManager.updateRestaurantName(restaurantName,restaurantId);
+                data.setValue(new ArrayList<>());
+            } else {
+                data.setValue(currentRestaurant.getLikers());
+            }
+        });
+        return data;
     }
 }

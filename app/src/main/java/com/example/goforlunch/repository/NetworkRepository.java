@@ -4,7 +4,12 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.NearByPlace;
+import com.example.goforlunch.model.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,6 +40,20 @@ public class NetworkRepository {
                 Log.d("TAG", "onFailure: getNearbyplace networkRepository null ");
             }
         });
+        return data;
+    }
+
+    public MutableLiveData<List<String>> getReservedRestaurant() {
+        final MutableLiveData<List<String>> data = new MutableLiveData<>();
+        UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<String> restaurantsId = new ArrayList<>();
+            for (User user : queryDocumentSnapshots.toObjects(User.class)) {
+                String restaurantId = user.getRestaurantId();
+                if ((restaurantId != null) && (!restaurantId.isEmpty()))
+                    restaurantsId.add(restaurantId);
+            }
+            data.setValue(restaurantsId);
+                });
         return data;
     }
 }

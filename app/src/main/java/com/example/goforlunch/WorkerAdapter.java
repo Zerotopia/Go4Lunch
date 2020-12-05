@@ -61,8 +61,8 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
         private final ImageView profil;
         private final TextView choice;
 
-        FirebaseStorage mFirebaseStorage;
-        StorageReference mStorageReference;
+      //  FirebaseStorage mFirebaseStorage;
+     //   StorageReference mStorageReference;
         String mImagePath = "image_profil/";
 
         public WorkerViewHolder(@NonNull View itemView) {
@@ -70,8 +70,8 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
             profil = itemView.findViewById(R.id.profile_imageview);
             choice = itemView.findViewById(R.id.choice_textview);
 
-            mFirebaseStorage = FirebaseStorage.getInstance();
-            mStorageReference = mFirebaseStorage.getReference();
+      //      mFirebaseStorage = FirebaseStorage.getInstance();
+       //     mStorageReference = mFirebaseStorage.getReference();
         }
 
         public void setUser(User user, boolean detail) {

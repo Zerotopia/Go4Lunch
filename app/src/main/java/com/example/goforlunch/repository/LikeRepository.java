@@ -1,6 +1,7 @@
 package com.example.goforlunch.repository;
 
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.MutableLiveData;
@@ -10,7 +11,10 @@ import com.example.goforlunch.RestaurantManager;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LikeRepository {
@@ -23,10 +27,9 @@ public class LikeRepository {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {
             Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
-            if ((restaurant.getLikers() != null) && (restaurant.getLikers().contains(userId)))
-                data.setValue(true);
-            else
-                data.setValue(false);
+            if (restaurant != null) {
+                data.setValue((restaurant.getLikers() != null) && (restaurant.getLikers().contains(userId)));
+            } else data.setValue(false);
         });
         return data;
     }
@@ -43,10 +46,14 @@ public class LikeRepository {
         return data;
     }
 
-    public MutableLiveData<List<User>> getUsers(String restaurantId) {
+    public MutableLiveData<List<User>> getUsers(String restaurantId, String userId) {
         MutableLiveData<List<User>> data = new MutableLiveData<>();
         UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
-           data.setValue(queryDocumentSnapshots.toObjects(User.class));
+            List<User> users = new ArrayList<>();
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
+                if (!documentSnapshot.getId().equals(userId))
+                    users.add(documentSnapshot.toObject(User.class));
+           data.setValue(users);
         });
         return data;
     }

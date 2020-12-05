@@ -1,5 +1,6 @@
 package com.example.goforlunch;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +25,8 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.goforlunch.di.Injection;
+import com.example.goforlunch.model.Place;
+import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
@@ -31,7 +35,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
-import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
@@ -40,8 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-        RecyclerFragment.AdapterListener,
-        MapFragment.MapMarkerListener {
+        //  RecyclerFragment.AdapterListener,
+        //   MapFragment.MapMarkerListener
+        ListItemClickListener {
 
     public static final String URL_IMAGE = "URLIMAGE";
     public static final String NAME_RESTAURANT = "NAMERESTAURANT";
@@ -69,6 +73,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     private ArrayList<String> mData = new ArrayList<>();
     private List<AutocompletePrediction> mPredictions = new ArrayList<>();
+    private List<String> mLikers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +96,13 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     private void observeViewModel() {
         mPredictionViewModel.getPredictionObservable().observe(this, this::updateResults);
+        mPredictionViewModel.getmLikersObservable().observe(this, this::updateLikers);
         Log.d("TAG", "observeViewModel: nameobserve");
-      //  mPredictionViewModel.getLocationObservable().observe(this, this::updateLocation);
+        //  mPredictionViewModel.getLocationObservable().observe(this, this::updateLocation);
+    }
+
+    private void updateLikers(List<String> likers) {
+        mLikers = likers;
     }
 
     private void updateLocation(LatLng latLng) {
@@ -101,19 +111,25 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     private void updateResults(List<AutocompletePrediction> predictions) {
         if ((mSelectedFragment == MAP_FRAGMENT) || (mSelectedFragment == RESTAURANT_FRAGMENT)) {
-        mData.clear();
-        mPredictions.clear();
-        mPredictions = predictions;
-        for (AutocompletePrediction pred : predictions) {
-           mData.add(pred.getFullText(STYLE_BOLD).toString());
-        }
-    mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, mData);
-        mSearchAutoComplete.setAdapter(mArrayAdapter);
-        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+            mData.clear();
+            mPredictions.clear();
+            mPredictions = predictions;
+            for (AutocompletePrediction pred : predictions) {
+                mData.add(pred.getFullText(STYLE_BOLD).toString());
+            }
+            mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, mData);
+            mSearchAutoComplete.setAdapter(mArrayAdapter);
+            mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
                 String placeData = (String) parent.getItemAtPosition(position);
                 AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
-                mPredictionViewModel.newPos(pred.getPlaceId());
-        });}
+               // mPredictionViewModel.newPos(pred.getPlaceId());
+                Log.d(TAG, "updateResults: "
+                        + parent.toString() + ";;;"
+                        + view.toString() + "::::"
+                        + position + ":::::"
+                        + id);
+            });
+        }
     }
 
     private void configureBottomView() {
@@ -169,7 +185,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
     public void initSearchView(SearchView searchView) {
-        mSearchAutoComplete = (SearchView.SearchAutoComplete) mSearchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        mSearchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         searchView.setQueryHint("Search");
         searchView.setIconifiedByDefault(false);
         searchView.setFocusable(true);
@@ -191,7 +207,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                     // Start a new place prediction request in 300 ms
                     handler.postDelayed(() -> {
                         mPredictionViewModel.newQuery(newText);
-                       // getPlacePredictions(newText);
+                        // getPlacePredictions(newText);
                     }, 300);
                 } else if (mSelectedFragment == WORKER_FRAGMENT) {
                     Log.d(TAG, "onQueryTextChange: " + (mSelectedFragment == WORKER_FRAGMENT));
@@ -200,6 +216,11 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                 return true;
             }
         });
+//        mSearchAutoComplete.setOnItemClickListener((adapterView, view, pos, id) -> {
+//            Log.d(TAG, "initSearchView: " + adapterView.toString() + pos + id);
+//           // Toast.makeText(this,adapterView.toString() + pos + id,Toast.LENGTH_SHORT);
+//
+//        });
     }
 
     @Override
@@ -210,10 +231,10 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         }
         return super.onOptionsItemSelected(item);
     }
-
-    public AutocompleteSessionToken getSessionToken() {
-        return sessionToken;
-    }
+//
+//    public AutocompleteSessionToken getSessionToken() {
+//        return sessionToken;
+//    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -240,32 +261,46 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else super.onBackPressed();
     }
+//
+//    @Override
+//    public void setSearchViewAdapter(List<User> users, RecyclerView recyclerView) {
+////        ArrayList<String> data = new ArrayList<>();
+////        for (User user : users) data.add(user.getFirstName() + " " + user.getLastName());
+////        mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, data);
+////        mSearchAutoComplete.setAdapter(mArrayAdapter);
+////        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+////            String userData = (String) parent.getItemAtPosition(position);
+////            List<User> selectedUser = new ArrayList<>();
+////            selectedUser.add(users.get(data.indexOf(userData)));
+////            WorkerAdapter newWorkerAdapter = new WorkerAdapter(selectedUser, false);
+////            recyclerView.setAdapter(newWorkerAdapter);
+////        });
+//        //WorkerAdapter newWorkerAdapeter = new WorkerAdapter(us)
+//    }
 
-    @Override
-    public void setSearchViewAdapter(List<User> users, RecyclerView recyclerView) {
-//        ArrayList<String> data = new ArrayList<>();
-//        for (User user : users) data.add(user.getFirstName() + " " + user.getLastName());
-//        mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, data);
-//        mSearchAutoComplete.setAdapter(mArrayAdapter);
-//        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
-//            String userData = (String) parent.getItemAtPosition(position);
-//            List<User> selectedUser = new ArrayList<>();
-//            selectedUser.add(users.get(data.indexOf(userData)));
-//            WorkerAdapter newWorkerAdapter = new WorkerAdapter(selectedUser, false);
-//            recyclerView.setAdapter(newWorkerAdapter);
-//        });
-        //WorkerAdapter newWorkerAdapeter = new WorkerAdapter(us)
-    }
-
-    @Override
+    //@Override
     public void setSearchMarker(GoogleMap map) {
-      //  if (mSearchAutoComplete != null)
-      // mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
-       //     String placeData = (String) parent.getItemAtPosition(position);
-         //   AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
-            // pred.getPlaceId()
-      // });
-      //  else Log.d(TAG, "setSearchMarker: setNULLL");
+        if (mSearchAutoComplete != null)
+            mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+                String placeData = (String) parent.getItemAtPosition(position);
+                AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
+                //pred.getPlaceId()
+            });
+        else Log.d(TAG, "setSearchMarker: setNULLL");
 
     }
+
+    @Override
+    public void itemClick(String url, Place place) {
+        mPredictionViewModel.newPos(place.getId());
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(MapActivity.URL_IMAGE, url);
+        intent.putExtra(MapActivity.NAME_RESTAURANT, place.getName());
+        intent.putExtra(MapActivity.UID_RESTAURANT, place.getId());
+        intent.putExtra(MapActivity.ADDR_RESTAURANT, place.getAddress());
+        intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) mLikers);
+        Log.d("TAG", "onrestaurantclick: before detailactivity : url :" + url + ", namer : " + place.getName() + ", id: " + place.getId() + ", addr: " + place.getAddress());
+        startActivity(intent);
+    }
+
 }
