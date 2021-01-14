@@ -63,7 +63,7 @@ public class DetailActivity extends AppCompatActivity {
     private SharedPreferences mPreferences;
     private String mCurrentId;
 
-    private LikeViewModel mLikeViewModel;
+    //private LikeViewModel mLikeViewModel;
 
     private boolean mLike;
     private boolean mLunch;
@@ -106,16 +106,14 @@ public class DetailActivity extends AppCompatActivity {
 //        mPredictionViewModel.newPos(uid);
         mDetailViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
+        mDetailViewModel.init(uid, mCurrentId);
         observeViewModel();
         mDetailViewModel.setId(uid);
 
-        mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(LikeViewModel.class);
-        if (mLikeViewModel == null) Log.d("TAGM", "onCreate: Likemodel NULL");
-        else Log.d("TAGM", "onCreate: NONNULL");
-        mLikeViewModel.init(uid, mCurrentId);
-        observeLike();
-        observeLunch();
-        observeLuncher();
+        //mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(LikeViewModel.class);
+//        if (mLikeViewModel == null) Log.d("TAGM", "onCreate: Likemodel NULL");
+//        else Log.d("TAGM", "onCreate: NONNULL");
+
 
 
         //if (restaurant exist)
@@ -177,18 +175,10 @@ public class DetailActivity extends AppCompatActivity {
 
     }
 
-    private void observeLuncher() {
-        mLikeViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
-    }
-
     private void setLuncherAdapter(List<User> users) {
         mUsers = users;
         mLuncherList.setLayoutManager(new LinearLayoutManager(this));
         mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
-    }
-
-    private void observeLunch() {
-        mLikeViewModel.getIsLunch().observe(this, this::updateFloatingButton);
     }
 
     private void updateFloatingButton(Boolean isLunch) {
@@ -205,7 +195,7 @@ public class DetailActivity extends AppCompatActivity {
         createRestaurant();
         if (mLunch) UserManager.updateUserRestaurant("", mCurrentId);
         else UserManager.updateUserRestaurant(uid, mCurrentId);
-        mLikeViewModel.changeUserRestaurant();
+        mDetailViewModel.changeUserRestaurant();
         //  mLikeViewModel.init(uid,mCurrentId);
 
     }
@@ -223,6 +213,9 @@ public class DetailActivity extends AppCompatActivity {
     private void observeViewModel() {
         mDetailViewModel.getPlaceObservable().observe(this, this::updatePlace);
         mDetailViewModel.getPhotoObservable().observe(this, this::updateImage);
+        mDetailViewModel.getIsLunch().observe(this, this::updateFloatingButton);
+        mDetailViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
+        mDetailViewModel.getIsLike().observe(this, this::updateLikeButton);
     }
 
     private void updateImage(Bitmap bitmap) {
@@ -236,9 +229,6 @@ public class DetailActivity extends AppCompatActivity {
         mNameRestaurant = place.getName();
     }
 
-    private void observeLike() {
-        mLikeViewModel.getIsLike().observe(this, this::updateLikeButton);
-    }
 
     private void updateLikeButton(Boolean isLike) {
         Drawable drawableTop;
@@ -266,7 +256,7 @@ public class DetailActivity extends AppCompatActivity {
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
         RestaurantManager.updateRestaurantLikers(mLikers, uid);
-        mLikeViewModel.changeLike();
+        mDetailViewModel.changeLike();
     }
 
     private void callOnClickListener() {

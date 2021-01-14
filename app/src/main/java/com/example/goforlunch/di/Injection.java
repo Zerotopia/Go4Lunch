@@ -20,29 +20,35 @@ public class Injection {
 
     public static final String TAG = "TAG";
 
-    public static NetworkRepository provideNetworkRepository() {
+    public static NetworkRepository provideNetworkRepository(Context context) {
         Log.d(TAG, "provideNetworkRepository: Injection ");
-        return new NetworkRepository(MapClient.getInstance());
-    }
-
-    public static ViewModelFactory provideNetworkViewModelFactory(Context context) {
-        Log.d(TAG, "provideNetworkViewModelFactory: Injection");
-        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository(), provideDetailRepository(context));
-    }
-
-    public static PredictionRepository providePredictionRepository(Context context) {
         PlacesClient placesClient;
         if (!Places.isInitialized()) {
             Places.initialize(context, context.getString(R.string.google_maps_key));
             Log.d("TAG", "onCreateView: initiliaze");
         }
         placesClient = Places.createClient(context);
-        return new PredictionRepository(placesClient, AutocompleteSessionToken.newInstance());
+        return new NetworkRepository(MapClient.getInstance(),placesClient,AutocompleteSessionToken.newInstance());
     }
 
-    public static LikeRepository provideLikeRepository() {
-        return new LikeRepository();
+    public static ViewModelFactory provideNetworkViewModelFactory(Context context) {
+        Log.d(TAG, "provideNetworkViewModelFactory: Injection");
+        return new ViewModelFactory(provideNetworkRepository(context), provideDetailRepository(context));
     }
+
+//    public static PredictionRepository providePredictionRepository(Context context) {
+//        PlacesClient placesClient;
+//        if (!Places.isInitialized()) {
+//            Places.initialize(context, context.getString(R.string.google_maps_key));
+//            Log.d("TAG", "onCreateView: initiliaze");
+//        }
+//        placesClient = Places.createClient(context);
+//        return new PredictionRepository(placesClient, AutocompleteSessionToken.newInstance());
+//    }
+
+  //  public static LikeRepository provideLikeRepository() {
+     //   return new LikeRepository();
+    //}
 
     public static DetailRepository provideDetailRepository(Context context) {
         PlacesClient placesClient;

@@ -5,13 +5,19 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.goforlunch.RestaurantManager;
+import com.example.goforlunch.UserManager;
+import com.example.goforlunch.model.Restaurant;
+import com.example.goforlunch.model.User;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.libraries.places.api.model.PhotoMetadata;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.FetchPhotoRequest;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,6 +78,41 @@ public class DetailRepository {
             mPlacesClient.fetchPhoto(photoRequest).addOnSuccessListener((fetchPhotoResponse) -> {
                 data.setValue(fetchPhotoResponse.getBitmap());
             });
+        });
+        return data;
+    }
+
+    public MutableLiveData<Boolean> isLike(String restaurantId, String userId) {
+        MutableLiveData<Boolean> data = new MutableLiveData<>();
+        RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {
+            Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
+            if (restaurant != null) {
+                data.setValue((restaurant.getLikers() != null) && (restaurant.getLikers().contains(userId)));
+            } else data.setValue(false);
+        });
+        return data;
+    }
+
+    public MutableLiveData<Boolean> isLunch(String restaurantId, String userId) {
+        MutableLiveData<Boolean> data = new MutableLiveData<>();
+        UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
+            User user = documentSnapshot.toObject(User.class);
+            if (user.getRestaurantId().equals(restaurantId))
+                data.setValue(true);
+            else
+                data.setValue(false);
+        });
+        return data;
+    }
+
+    public MutableLiveData<List<User>> getUsers(String restaurantId, String userId) {
+        MutableLiveData<List<User>> data = new MutableLiveData<>();
+        UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
+            List<User> users = new ArrayList<>();
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
+                if (!documentSnapshot.getId().equals(userId))
+                    users.add(documentSnapshot.toObject(User.class));
+            data.setValue(users);
         });
         return data;
     }

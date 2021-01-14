@@ -23,6 +23,7 @@ import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
+import com.example.goforlunch.viewmodel.NetworkViewModel;
 import com.example.goforlunch.viewmodel.PredictionViewModel;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -56,7 +57,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     public static final int RESTAURANT_FRAGMENT = 1;
     public static final int WORKER_FRAGMENT = 2;
     private int mSelectedFragment;
-    private PredictionViewModel mPredictionViewModel;
+    private NetworkViewModel mNetworkViewModel;
     private Handler handler = new Handler();
     private SearchView mSearchView;
     private ArrayAdapter<String> mArrayAdapter;
@@ -80,18 +81,18 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mNavigationView = findViewById(R.id.map_activity_navigation_drawer);
         mNavigationView.setNavigationItemSelectedListener(this);
 
-        mPredictionViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
-        mPredictionViewModel.init();
+        mNetworkViewModel =
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(NetworkViewModel.class);
+        //mPredictionViewModel.init();
         observeViewModel();
 
     }
 
     private void observeViewModel() {
-        mPredictionViewModel.getPredictionObservable().observe(this, this::updateResults);
-        mPredictionViewModel.getmLikersObservable().observe(this, this::updateLikers);
+        mNetworkViewModel.getPredictionObservable().observe(this, this::updateResults);
+        mNetworkViewModel.getmLikersObservable().observe(this, this::updateLikers);
         Log.d("TAG", "observeViewModel: nameobserve");
-        mPredictionViewModel.getLocationObservable().observe(this, this::updateLocation);
+        mNetworkViewModel.getLocationObservable().observe(this, this::updateLocation);
 
     }
 
@@ -124,7 +125,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                         + id);
                 if (mSelectedFragment == MAP_FRAGMENT) {
                     mPlaceId = pred.getPlaceId();
-                mPredictionViewModel.newPos(pred.getPlaceId());}
+                mNetworkViewModel.newPos(pred.getPlaceId());}
                 else {
                     Log.d(TAG, "updateResults: startactivityyyyyyyyyyyyyyyyyyyy");
                     itemClick(pred.getPlaceId());
@@ -209,7 +210,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
                     // Start a new place prediction request in 300 ms
                     handler.postDelayed(() -> {
-                        mPredictionViewModel.newQuery(newText);
+                        mNetworkViewModel.newQuery(newText);
                         // getPlacePredictions(newText);
                     }, 300);
                 } else if (mSelectedFragment == WORKER_FRAGMENT) {
@@ -296,7 +297,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     @Override
     public void itemClick(String placeId) {
-        mPredictionViewModel.newPos(placeId);
+        mNetworkViewModel.newPos(placeId);
         Intent intent = new Intent(this, DetailActivity.class);
 //        intent.putExtra(MapActivity.URL_IMAGE, url);
 //        intent.putExtra(MapActivity.NAME_RESTAURANT, place.getName());
