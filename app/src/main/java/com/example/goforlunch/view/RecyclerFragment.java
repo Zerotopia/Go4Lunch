@@ -1,81 +1,68 @@
 package com.example.goforlunch.view;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 
-import androidx.appcompat.widget.SearchView;
-
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.goforlunch.MapActivity;
+import com.example.goforlunch.activity.MapActivity;
 import com.example.goforlunch.R;
-import com.example.goforlunch.UserManager;
 import com.example.goforlunch.WorkerAdapter;
+import com.example.goforlunch.databinding.FragmentRecyclerBinding;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
-import com.example.goforlunch.model.Place;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
-import com.example.goforlunch.viewmodel.PredictionViewModel;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.AutocompletePrediction;
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.goforlunch.view.PredictionAdapter.TAG;
+//import static com.example.goforlunch.view.PredictionAdapter.TAG;
 
 public class RecyclerFragment extends Fragment {
 
+    public static final String TAG = "TAG";
     private static final String LIST_VIEW = "LISTVIEW";
     private TextView mTextView;
     private RecyclerView mRecyclerView;
 
-    private String[] mListName;
-    private AutoCompleteTextView mAutoCompleteTextView;
+    // private String[] mListName;
+    // private AutoCompleteTextView mAutoCompleteTextView;
 
-    private Handler handler = new Handler();
-    private PlacesClient placesClient;
-    private AutocompleteSessionToken sessionToken;
-    private PredictionAdapter adapter = new PredictionAdapter();
+    // private Handler handler = new Handler();
+   // private PlacesClient placesClient;
+   // private AutocompleteSessionToken sessionToken;
+    // private PredictionAdapter adapter = new PredictionAdapter();
     private WorkerAdapter mWorkerAdapter;
-    private PredictionViewModel mPredictionViewModel;
+   // private PredictionViewModel mPredictionViewModel;
     private List<User> mUsers;
     private boolean mList;
 
-    private AdapterListener mAdapterListener;
+   // private AdapterListener mAdapterListener;
     private SharedPreferences mPreferences;
     private String mCurrentId;
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-//        mAdapterListener = (AdapterListener) context;
-    }
+    private FragmentRecyclerBinding mBinding;
+
+//    @Override
+//    public void onAttach(@NonNull Context context) {
+//        super.onAttach(context);
+////        mAdapterListener = (AdapterListener) context;
+//    }
 
     @NonNull
     public static RecyclerFragment newInstance(boolean listView) {
@@ -97,7 +84,7 @@ public class RecyclerFragment extends Fragment {
         final NetworkViewModel networkViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
-        networkViewModel.init();
+        networkViewModel.init(mCurrentId);
         Log.d(TAG, "onActivityCreated: mapfragment init");
         observeViewModel(networkViewModel);
         Log.d(TAG, "onActivityCreated: mapfragment observe");
@@ -111,6 +98,19 @@ public class RecyclerFragment extends Fragment {
         Log.d(TAG, "observeViewModel: mapfragment in observe");
         networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
         Log.d(TAG, "observeViewModel: mapgrgment fin observe");
+        networkViewModel.getWorkersObservable().observe(this, this::updateWorkers);
+    }
+
+    private void updateWorkers(List<User> users) {
+        mUsers = users;
+        if (!mList) {
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+
+            mWorkerAdapter = new WorkerAdapter(mUsers, false);
+            mRecyclerView.setAdapter(mWorkerAdapter);
+
+        }
     }
 
     private void updateNearByPlace(NearByPlace nearByPlace) {
@@ -144,45 +144,47 @@ public class RecyclerFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View listView = inflater.inflate(R.layout.fragment_recycler, container, false);
-        mTextView = listView.findViewById(R.id.textfrag);
-        mRecyclerView = listView.findViewById(R.id.fragment_recyclerview);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_recycler, container, false);
+       // View listView = inflater.inflate(R.layout.fragment_recycler, container, false);
+        View listView = mBinding.getRoot();
+      // mTextView = listView.findViewById(R.id.textfrag);
+       // mRecyclerView = listView.findViewById(R.id.fragment_recyclerview);
+       // mTextView = mBinding.textfrag;
+        mRecyclerView = mBinding.fragmentRecyclerview;
         mList = (getArguments() == null) || getArguments().getBoolean(LIST_VIEW, true);
         Log.d("TAG", "onCreateView: ici");
-        if (mList) mTextView.setText("List View");
-        else {
-            mTextView.setText("List Worker");
-            Log.d("TAG", "onCreateView: là ");
-            UserManager.getAllUser().addOnSuccessListener(documentSnapshots -> {
-                mUsers = new ArrayList<>();
-                for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
-                    if (!document.getId().equals(mCurrentId)) {
-                        Log.d(TAG, "onCreateView: fordoc " + document.getId());
-                        User user = document.toObject(User.class);
-                        mUsers.add(user);
-                    }
-                }
-                Log.d("TAG", "onCreateView: success");
-
-               // mUsers = documentSnapshots.toObjects(User.class);
-                // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
-                //Log.d("TAG", "onCreateView: " + mUsers.size());
-                //for (User user : mUsers) {
-                //    Log.d("TAG", "onCreateView: " + user.getEmail());
-                //}
-                Log.d("TAG", "onCreateView: muserok");
-                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-                mRecyclerView.setLayoutManager(layoutManager);
-                mWorkerAdapter = new WorkerAdapter(mUsers, false);
-                mRecyclerView.setAdapter(mWorkerAdapter);
-
-                while (mRecyclerView.getItemDecorationCount() > 0) {
-                    mRecyclerView.removeItemDecorationAt(0);
-                }
+        //if (mList) mTextView.setText("List View");
+        if (!mList) {
+           // mTextView.setText("List Worker");
+//            Log.d("TAG", "onCreateView: là ");
+//            UserManager.getAllUser().addOnSuccessListener(documentSnapshots -> {
+//                mUsers = new ArrayList<>();
+//                for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
+//                    if (!document.getId().equals(mCurrentId)) {
+//                        Log.d(TAG, "onCreateView: fordoc " + document.getId());
+//                        User user = document.toObject(User.class);
+//                        mUsers.add(user);
+//                    }a
+//               // mUsers = documentSnapshots.toObjects(User.class);
+//                // mAdapterListener.setSearchViewAdapter(mUsers,mRecyclerView);
+//                //Log.d("TAG", "onCreateView: " + mUsers.size());
+//                //for (User user : mUsers) {
+//                //    Log.d("TAG", "onCreateView: " + user.getEmail());
+//                //}
+//                Log.d("TAG", "onCreateView: muserok");
+//                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+//                mRecyclerView.setLayoutManager(layoutManager);
+//
+//                mWorkerAdapter = new WorkerAdapter(mUsers, false);
+//                mRecyclerView.setAdapter(mWorkerAdapter);
+//
+////                while (mRecyclerView.getItemDecorationCount() > 0) {
+////                    mRecyclerView.removeItemDecorationAt(0);
+//                }
                 mRecyclerView.addItemDecoration(new CustomItemDecoration(listView.getContext()));
-            }).addOnFailureListener(e -> {
-                Log.d("TAG", "onCreateView: fail " + e.getMessage());
-            });
+//            }).addOnFailureListener(e -> {
+//                Log.d("TAG", "onCreateView: fail " + e.getMessage());
+//            });
 
         }
 
@@ -201,7 +203,7 @@ public class RecyclerFragment extends Fragment {
 //        if (listView.getContext() != null) {
 //            placesClient = Places.createClient(listView.getContext());
 //        }
-        initRecyclerView(listView);
+      //  initRecyclerView(listView);
 
 //            RectangularBounds bounds = RectangularBounds.newInstance(
 //                    new LatLng(-33.878872968030315, 151.18850925236305),
@@ -294,15 +296,15 @@ public class RecyclerFragment extends Fragment {
 //        });
 //    }
 
-    private void initRecyclerView(View view) {
-
-        final RecyclerView recyclerView = view.findViewById(R.id.fragment_recyclerview);
-        final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
-        if (getContext() != null)
-            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
-    }
+//    private void initRecyclerView(View view) {
+//
+//        final RecyclerView recyclerView = view.findViewById(R.id.fragment_recyclerview);
+//        final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+//        recyclerView.setLayoutManager(layoutManager);
+//        recyclerView.setAdapter(adapter);
+//        if (getContext() != null)
+//            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
+//    }
 
     public void updateList(String newText) {
         List<User> newList = new ArrayList<>();

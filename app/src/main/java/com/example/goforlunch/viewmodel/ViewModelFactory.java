@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.goforlunch.repository.DetailRepository;
 import com.example.goforlunch.repository.LikeRepository;
 import com.example.goforlunch.repository.NetworkRepository;
 import com.example.goforlunch.repository.PredictionRepository;
@@ -14,11 +15,14 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
     private NetworkRepository mNetworkRepository;
     private PredictionRepository mPredictionRepository;
     private LikeRepository mLikeRepository;
+    private DetailRepository mDetailRepository;
 
-    public ViewModelFactory(NetworkRepository networkRepository, PredictionRepository predictionRepository, LikeRepository likeRepository) {
+
+    public ViewModelFactory(NetworkRepository networkRepository, PredictionRepository predictionRepository, LikeRepository likeRepository, DetailRepository detailRepository) {
         mNetworkRepository = networkRepository;
         mPredictionRepository = predictionRepository;
         mLikeRepository = likeRepository;
+        mDetailRepository = detailRepository;
     }
 
     @NonNull
@@ -30,6 +34,8 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             return (T) new PredictionViewModel(mPredictionRepository);
         else  if (modelClass.isAssignableFrom(LikeViewModel.class))
             return (T) new LikeViewModel(mLikeRepository);
+        else  if (modelClass.isAssignableFrom(DetailViewModel.class))
+            return (T) new DetailViewModel(mDetailRepository);
         return null;
     }
 }

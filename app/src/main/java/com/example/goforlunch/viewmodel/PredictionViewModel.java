@@ -1,5 +1,7 @@
 package com.example.goforlunch.viewmodel;
 
+import android.graphics.Bitmap;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -29,6 +31,13 @@ public class PredictionViewModel extends ViewModel {
             Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlaceLocation(placeId));
     private  final LiveData<Place> mPhoneObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlacePhone(placeId));
+//    private final LiveData<Place> mPlaceObservable =
+//            Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlace(placeId));
+    private final LiveData<com.example.goforlunch.model.Place> mPlaceObservable =
+        Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlace(placeId));
+    private  final LiveData<Bitmap> mPhotoObservable =
+            Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPhotos(placeId));
+
 
     private final LiveData<List<String>> mLikersObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getLikers(placeId));
@@ -54,6 +63,10 @@ public class PredictionViewModel extends ViewModel {
     public final LiveData<LatLng> getLocationObservable() { return mLocationObservable; }
 
     public final LiveData<Place> getmPhoneObservable() { return  mPhoneObservable; }
+    //public final LiveData<Place> getPlaceObservable() { return mPlaceObservable; }
 
     public  final LiveData<List<String>> getmLikersObservable() { return  mLikersObservable; }
+
+    public final LiveData<com.example.goforlunch.model.Place> getPlaceObservable() { return mPlaceObservable; }
+    public final LiveData<Bitmap> getPhotoObservable() {return mPhotoObservable; }
 }

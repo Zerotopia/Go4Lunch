@@ -1,7 +1,8 @@
-package com.example.goforlunch;
+package com.example.goforlunch.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,11 +23,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.goforlunch.R;
+import com.example.goforlunch.RestaurantManager;
+import com.example.goforlunch.UserManager;
+import com.example.goforlunch.WorkerAdapter;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
+import com.example.goforlunch.viewmodel.DetailViewModel;
 import com.example.goforlunch.viewmodel.LikeViewModel;
-import com.example.goforlunch.viewmodel.PredictionViewModel;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -53,7 +58,8 @@ public class DetailActivity extends AppCompatActivity {
     private List<User> mUsers = new ArrayList<>();
     private List<String> mLikers = new ArrayList<>();
     private String uid;
-    private PredictionViewModel mPredictionViewModel;
+    // private PredictionViewModel mPredictionViewModel;
+    private DetailViewModel mDetailViewModel;
     private SharedPreferences mPreferences;
     private String mCurrentId;
 
@@ -81,6 +87,7 @@ public class DetailActivity extends AppCompatActivity {
         Log.d("TAG", "onCreate: ID = " + mCurrentId);
 
         Intent intent = getIntent();
+        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
         mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
         mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
         mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
@@ -93,15 +100,19 @@ public class DetailActivity extends AppCompatActivity {
 
         Log.d("TAG", ": In detailactivity : url :" + mUrlImage + ", namer : " + mNameRestaurant + ", id: " + uid + ", addr: " + mAddressRestaurant);
 
-        mPredictionViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
+//        mPredictionViewModel =
+//                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
+//        observeViewModel();
+//        mPredictionViewModel.newPos(uid);
+        mDetailViewModel =
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
         observeViewModel();
-        mPredictionViewModel.newPos(uid);
+        mDetailViewModel.setId(uid);
 
         mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(LikeViewModel.class);
         if (mLikeViewModel == null) Log.d("TAGM", "onCreate: Likemodel NULL");
         else Log.d("TAGM", "onCreate: NONNULL");
-        mLikeViewModel.init(uid,mCurrentId);
+        mLikeViewModel.init(uid, mCurrentId);
         observeLike();
         observeLunch();
         observeLuncher();
@@ -195,22 +206,34 @@ public class DetailActivity extends AppCompatActivity {
         if (mLunch) UserManager.updateUserRestaurant("", mCurrentId);
         else UserManager.updateUserRestaurant(uid, mCurrentId);
         mLikeViewModel.changeUserRestaurant();
-      //  mLikeViewModel.init(uid,mCurrentId);
+        //  mLikeViewModel.init(uid,mCurrentId);
 
     }
 
     private void createRestaurant() {
-              RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-                   if (currentRestaurant == null) {
-                       RestaurantManager.createRestaurant(uid);
-                       RestaurantManager.updateRestaurantName(mNameRestaurant,uid);
-                   }
-                });
+        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
+            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+            if (currentRestaurant == null) {
+                RestaurantManager.createRestaurant(uid);
+                RestaurantManager.updateRestaurantName(mNameRestaurant, uid);
+            }
+        });
     }
 
     private void observeViewModel() {
-        mPredictionViewModel.getmPhoneObservable().observe(this, this::updatePhone);
+        mDetailViewModel.getPlaceObservable().observe(this, this::updatePlace);
+        mDetailViewModel.getPhotoObservable().observe(this, this::updateImage);
+    }
+
+    private void updateImage(Bitmap bitmap) {
+        mRestaurantPicture.setImageBitmap(bitmap);
+    }
+
+    private void updatePlace(Place place) {
+        mPhoneNumber = place.getPhoneNumber();
+        mWebsiteUri = place.getWebsiteUri();
+        mAddressRestaurant = place.getAddress();
+        mNameRestaurant = place.getName();
     }
 
     private void observeLike() {
@@ -219,20 +242,18 @@ public class DetailActivity extends AppCompatActivity {
 
     private void updateLikeButton(Boolean isLike) {
         Drawable drawableTop;
-        if (isLike) {
+        if (isLike)
             drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_24, null);
-            mLike = true;
-        } else {
+        else
             drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_grey_24, null);
-            mLike = false;
-        }
+        mLike = isLike;
         mLikeButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawableTop, null, null);
     }
 
-    private void updatePhone(Place place) {
-        mPhoneNumber = place.getPhoneNumber();
-        mWebsiteUri = place.getWebsiteUri();
-    }
+//    private void updatePhone(Place place) {
+//        mPhoneNumber = place.getPhoneNumber();
+//        mWebsiteUri = place.getWebsiteUri();
+//    }
 
     private void webOnClickListener() {
         Intent intent = new Intent(Intent.ACTION_VIEW, mWebsiteUri);

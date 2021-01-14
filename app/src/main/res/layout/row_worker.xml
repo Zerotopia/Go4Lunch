@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="user"
+            type="com.example.goforlunch.model.User" />
+    </data>
+
+<LinearLayout
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,6 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="2"
         android:id="@+id/profile_imageview"
+        app:userImage="@{user.photo}"
         />
 
     <TextView
@@ -23,5 +33,7 @@
         android:id="@+id/choice_textview"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="20dp"
+        android:text="@{user.userName + `lunch in` + user.restaurantId}"
         />
 </LinearLayout>
+</layout>

@@ -1,20 +1,15 @@
-package com.example.goforlunch;
+package com.example.goforlunch.activity;
 
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextPaint;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,12 +17,10 @@ import androidx.appcompat.widget.SearchView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.goforlunch.ListItemClickListener;
+import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
-import com.example.goforlunch.model.Place;
-import com.example.goforlunch.model.Restaurant;
-import com.example.goforlunch.model.User;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
 import com.example.goforlunch.viewmodel.PredictionViewModel;
@@ -38,13 +31,12 @@ import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         //  RecyclerFragment.AdapterListener,
-        //   MapFragment.MapMarkerListener
+        MapFragment.MapMarkerListener,
         ListItemClickListener {
 
     public static final String URL_IMAGE = "URLIMAGE";
@@ -74,6 +66,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private ArrayList<String> mData = new ArrayList<>();
     private List<AutocompletePrediction> mPredictions = new ArrayList<>();
     private List<String> mLikers = new ArrayList<>();
+    private String mPlaceId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +91,8 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mPredictionViewModel.getPredictionObservable().observe(this, this::updateResults);
         mPredictionViewModel.getmLikersObservable().observe(this, this::updateLikers);
         Log.d("TAG", "observeViewModel: nameobserve");
-        //  mPredictionViewModel.getLocationObservable().observe(this, this::updateLocation);
+        mPredictionViewModel.getLocationObservable().observe(this, this::updateLocation);
+
     }
 
     private void updateLikers(List<String> likers) {
@@ -106,7 +100,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
     private void updateLocation(LatLng latLng) {
-        if (mSelectedFragment == MAP_FRAGMENT) mMapFragment.updateUI(latLng);
+        if (mSelectedFragment == MAP_FRAGMENT) mMapFragment.updateUI(latLng, mPlaceId);
     }
 
     private void updateResults(List<AutocompletePrediction> predictions) {
@@ -122,12 +116,21 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
             mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
                 String placeData = (String) parent.getItemAtPosition(position);
                 AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
-               // mPredictionViewModel.newPos(pred.getPlaceId());
+
                 Log.d(TAG, "updateResults: "
                         + parent.toString() + ";;;"
                         + view.toString() + "::::"
                         + position + ":::::"
                         + id);
+                if (mSelectedFragment == MAP_FRAGMENT) {
+                    mPlaceId = pred.getPlaceId();
+                mPredictionViewModel.newPos(pred.getPlaceId());}
+                else {
+                    Log.d(TAG, "updateResults: startactivityyyyyyyyyyyyyyyyyyyy");
+                    itemClick(pred.getPlaceId());
+                    
+                }
+
             });
         }
     }
@@ -261,46 +264,51 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else super.onBackPressed();
     }
-//
+
 //    @Override
 //    public void setSearchViewAdapter(List<User> users, RecyclerView recyclerView) {
-////        ArrayList<String> data = new ArrayList<>();
-////        for (User user : users) data.add(user.getFirstName() + " " + user.getLastName());
-////        mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, data);
-////        mSearchAutoComplete.setAdapter(mArrayAdapter);
-////        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
-////            String userData = (String) parent.getItemAtPosition(position);
-////            List<User> selectedUser = new ArrayList<>();
-////            selectedUser.add(users.get(data.indexOf(userData)));
-////            WorkerAdapter newWorkerAdapter = new WorkerAdapter(selectedUser, false);
-////            recyclerView.setAdapter(newWorkerAdapter);
-////        });
+//        ArrayList<String> data = new ArrayList<>();
+//        for (User user : users) data.add(user.getUserName());
+//        mArrayAdapter = new ArrayAdapter<>(this, R.layout.autocompletion, data);
+//        mSearchAutoComplete.setAdapter(mArrayAdapter);
+//        mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+//            String userData = (String) parent.getItemAtPosition(position);
+//            List<User> selectedUser = new ArrayList<>();
+//            selectedUser.add(users.get(data.indexOf(userData)));
+//            WorkerAdapter newWorkerAdapter = new WorkerAdapter(selectedUser, false);
+//            recyclerView.setAdapter(newWorkerAdapter);
+//        });
 //        //WorkerAdapter newWorkerAdapeter = new WorkerAdapter(us)
 //    }
 
-    //@Override
+    @Override
     public void setSearchMarker(GoogleMap map) {
         if (mSearchAutoComplete != null)
             mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
                 String placeData = (String) parent.getItemAtPosition(position);
                 AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
-                //pred.getPlaceId()
+                itemClick(pred.getPlaceId());
+
             });
         else Log.d(TAG, "setSearchMarker: setNULLL");
 
     }
 
     @Override
-    public void itemClick(String url, Place place) {
-        mPredictionViewModel.newPos(place.getId());
+    public void itemClick(String placeId) {
+        mPredictionViewModel.newPos(placeId);
         Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra(MapActivity.URL_IMAGE, url);
-        intent.putExtra(MapActivity.NAME_RESTAURANT, place.getName());
-        intent.putExtra(MapActivity.UID_RESTAURANT, place.getId());
-        intent.putExtra(MapActivity.ADDR_RESTAURANT, place.getAddress());
+//        intent.putExtra(MapActivity.URL_IMAGE, url);
+//        intent.putExtra(MapActivity.NAME_RESTAURANT, place.getName());
+        intent.putExtra(MapActivity.UID_RESTAURANT, placeId);
+//        intent.putExtra(MapActivity.ADDR_RESTAURANT, place.getAddress());
         intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) mLikers);
-        Log.d("TAG", "onrestaurantclick: before detailactivity : url :" + url + ", namer : " + place.getName() + ", id: " + place.getId() + ", addr: " + place.getAddress());
+        Log.d("TAG", "onrestaurantclick: before detailactivity : url ");
         startActivity(intent);
     }
+
+//    public interface MapListener {
+//        void updateMap (LatLng position);
+//    }
 
 }

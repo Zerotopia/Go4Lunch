@@ -1,8 +1,5 @@
 package com.example.goforlunch.view;
 
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,18 +13,10 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.goforlunch.DetailActivity;
 import com.example.goforlunch.ListItemClickListener;
-import com.example.goforlunch.MapActivity;
 import com.example.goforlunch.R;
-import com.example.goforlunch.RestaurantManager;
-import com.example.goforlunch.WorkerAdapter;
-import com.example.goforlunch.model.NearByPlace;
 import com.example.goforlunch.model.Place;
-import com.example.goforlunch.model.Restaurant;
-import com.example.goforlunch.repository.NetworkRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
@@ -102,7 +91,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 //                intent.putExtra(MapActivity.ADDR_RESTAURANT,place.getAddress());
 //                Log.d("TAG", "onrestaurantclick: before detailactivity : url :" + urlPhoto() + ", namer : " + place.getName() + ", id: " + place.getId() + ", addr: " + place.getAddress());
 //                itemView.getContext().startActivity(intent);
-                ((ListItemClickListener) itemView.getContext()).itemClick(urlPhoto(),place);
+                ((ListItemClickListener) itemView.getContext()).itemClick(place.getId());
            });
         }
 

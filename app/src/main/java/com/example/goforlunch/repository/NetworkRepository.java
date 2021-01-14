@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.NearByPlace;
 import com.example.goforlunch.model.User;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class NetworkRepository {
             public void onResponse(Call<NearByPlace> call, Response<NearByPlace> response) {
                 if (response.isSuccessful()) {
                     data.setValue(response.body());
-                    Log.d("TAG", "onResponse in getNearbyplace Network repository: data setValue OK" + response.body().getResults().size() );
+                    Log.d("TAG", "onResponse in getNearbyplace Network repository: data setValue OK" + response.body().getResults().size());
                 } else Log.d("TAG", "onResponse in getNearbyplace Network repository: FAILLLLLLL");
             }
 
@@ -53,7 +54,22 @@ public class NetworkRepository {
                     restaurantsId.add(restaurantId);
             }
             data.setValue(restaurantsId);
-                });
+        });
+        return data;
+    }
+
+    public MutableLiveData<List<User>> getWorkers(String userId) {
+        final MutableLiveData<List<User>> data = new MutableLiveData<>();
+        UserManager.getAllUser().addOnSuccessListener(documentSnapshots -> {
+            List<User> users = new ArrayList<>();
+            for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
+                if (!document.getId().equals(userId)) {
+                    User user = document.toObject(User.class);
+                    users.add(user);
+                }
+            }
+            data.setValue(users);
+        });
         return data;
     }
 }

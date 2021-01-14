@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.goforlunch.MapClient;
 import com.example.goforlunch.R;
+import com.example.goforlunch.repository.DetailRepository;
 import com.example.goforlunch.repository.LikeRepository;
 import com.example.goforlunch.repository.NetworkRepository;
 import com.example.goforlunch.repository.PredictionRepository;
@@ -26,7 +27,7 @@ public class Injection {
 
     public static ViewModelFactory provideNetworkViewModelFactory(Context context) {
         Log.d(TAG, "provideNetworkViewModelFactory: Injection");
-        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository());
+        return new ViewModelFactory(provideNetworkRepository(), providePredictionRepository(context), provideLikeRepository(), provideDetailRepository(context));
     }
 
     public static PredictionRepository providePredictionRepository(Context context) {
@@ -43,5 +44,14 @@ public class Injection {
         return new LikeRepository();
     }
 
-
+    public static DetailRepository provideDetailRepository(Context context) {
+        PlacesClient placesClient;
+        if (!Places.isInitialized()) {
+            Places.initialize(context, context.getString(R.string.google_maps_key));
+            Log.d("TAG", "onCreateView: initiliaze");
+        }
+        placesClient = Places.createClient(context);
+        return new DetailRepository(placesClient);
+    }
 }
+

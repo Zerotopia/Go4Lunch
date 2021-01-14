@@ -1,5 +1,14 @@
 package com.example.goforlunch.model;
 
+import android.widget.ImageView;
+
+import androidx.databinding.BindingAdapter;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.Priority;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.goforlunch.R;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.model.value.ReferenceValue;
 
@@ -12,16 +21,17 @@ public class User {
     //private String LastName;
     ///@SerializedName("Email")
     private String Email;
-   // private boolean mIsActive;
+    // private boolean mIsActive;
 
     //private int mUserId;
-   // @SerializedName("Photo")
+    // @SerializedName("Photo")
     private String Photo;
-   // @SerializedName("RestaurantId")
+    // @SerializedName("RestaurantId")
     private String RestaurantId;
 
 
-    public  User () {}
+    public User() {
+    }
 
     public User(String userName, String email, String photo) {
         UserName = userName;
@@ -45,13 +55,13 @@ public class User {
         Email = email;
     }
 
-   // public boolean isActive() {
-   //     return mIsActive;
-   // }
+    // public boolean isActive() {
+    //     return mIsActive;
+    // }
 
-   // public void setActive(boolean active) {
-   //     mIsActive = active;
-   // }
+    // public void setActive(boolean active) {
+    //     mIsActive = active;
+    // }
 
     public String getRestaurantId() {
         return RestaurantId;
@@ -84,9 +94,24 @@ public class User {
                 Photo;
     }
 
-    public static User parseString (String userString) {
-        String[] userInfo = userString.split("/",3);
-        return new User(userInfo[0],userInfo[1],userInfo[2]);
+    public static User parseString(String userString) {
+        String[] userInfo = userString.split("/", 3);
+        return new User(userInfo[0], userInfo[1], userInfo[2]);
 
+    }
+
+    @BindingAdapter("userImage")
+    public static void loadImage(ImageView imageView, String urlImage) {
+        RequestOptions options = new RequestOptions()
+                .centerCrop()
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .priority(Priority.HIGH);
+        Glide.with(imageView.getContext())
+                .setDefaultRequestOptions(options)
+                .load(urlImage)
+                .apply(RequestOptions.circleCropTransform())
+                .into(imageView);
     }
 }

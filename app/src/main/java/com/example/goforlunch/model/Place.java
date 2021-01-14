@@ -30,6 +30,11 @@ public class Place {
     @SerializedName("opening_hours")
     private OpenHours mOpen;
 
+    public Place(String id, String name, String address) {
+        mId = id;
+        mName = name;
+        mAddress = address;
+    }
 
     public Geometry getGeometry() {
         return mGeometry;

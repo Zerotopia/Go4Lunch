@@ -1,4 +1,4 @@
-package com.example.goforlunch;
+package com.example.goforlunch.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,9 +9,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
+import com.example.goforlunch.R;
+import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.User;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
