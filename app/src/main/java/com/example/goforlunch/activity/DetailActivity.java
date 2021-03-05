@@ -1,5 +1,9 @@
 package com.example.goforlunch.activity;
 
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -15,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,10 +28,12 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.goforlunch.AlarmReceiver;
 import com.example.goforlunch.R;
 import com.example.goforlunch.RestaurantManager;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.WorkerAdapter;
+import com.example.goforlunch.databinding.ActivityDetailBinding;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
@@ -36,6 +43,7 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
@@ -62,8 +70,10 @@ public class DetailActivity extends AppCompatActivity {
     private DetailViewModel mDetailViewModel;
     private SharedPreferences mPreferences;
     private String mCurrentId;
+    private Bitmap mBitmap;
 
     //private LikeViewModel mLikeViewModel;
+    private ActivityDetailBinding mBinding;
 
     private boolean mLike;
     private boolean mLunch;
@@ -71,16 +81,19 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+        //setContentView(R.layout.activity_detail);
 
-        mRestaurantPicture = findViewById(R.id.detail_imageview);
-        mRestaurantName = findViewById(R.id.detail_restaurant_name);
-        mRestaurantAddress = findViewById(R.id.detail_restaurant_address);
-        mLuncherList = findViewById(R.id.detail_luncher_recyclerview);
-        mCallButton = findViewById(R.id.detail_call_button);
-        mLikeButton = findViewById(R.id.detail_like_button);
-        mWebsiteButton = findViewById(R.id.detail_website_button);
-        mFloatingActionButton = findViewById(R.id.floating_button);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+        mBinding.setDetailActivity(this);
+
+        mRestaurantPicture = mBinding.detailImageview;
+        //mRestaurantName = findViewById(R.id.detail_restaurant_name);
+        //mRestaurantAddress = findViewById(R.id.detail_restaurant_address);
+        mLuncherList = mBinding.detailLuncherRecyclerview;
+        // mCallButton = findViewById(R.id.detail_call_button);
+        mLikeButton = mBinding.detailLikeButton;
+        // mWebsiteButton = findViewById(R.id.detail_website_button);
+        mFloatingActionButton = mBinding.floatingButton;
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
@@ -91,7 +104,6 @@ public class DetailActivity extends AppCompatActivity {
         mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
         mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
         mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
-        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
         mLikers = intent.getStringArrayListExtra(MapActivity.LIST_LIKERS);
         if (mLikers == null) {
             mLikers = new ArrayList<>();
@@ -100,33 +112,14 @@ public class DetailActivity extends AppCompatActivity {
 
         Log.d("TAG", ": In detailactivity : url :" + mUrlImage + ", namer : " + mNameRestaurant + ", id: " + uid + ", addr: " + mAddressRestaurant);
 
-//        mPredictionViewModel =
-//                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(PredictionViewModel.class);
-//        observeViewModel();
-//        mPredictionViewModel.newPos(uid);
         mDetailViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
         mDetailViewModel.init(uid, mCurrentId);
         observeViewModel();
         mDetailViewModel.setId(uid);
 
-        //mLikeViewModel = ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(LikeViewModel.class);
-//        if (mLikeViewModel == null) Log.d("TAGM", "onCreate: Likemodel NULL");
-//        else Log.d("TAGM", "onCreate: NONNULL");
-
-
-
-        //if (restaurant exist)
-        // RestaurantManager.createRestaurant(uid);
-
-//        UserManager.getUsersInRestaurant(uid).addOnSuccessListener(queryDocumentSnapshots -> {
-//            mUsers = queryDocumentSnapshots.toObjects(User.class);
-//            mLuncherList.setLayoutManager(new LinearLayoutManager(this));
-//            mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
-//        });
-        // List<String> usersString = intent.getStringArrayListExtra(MapActivity.LIST_USER_STRING);
-        //for (String userString : usersString) mUsers.add(User.parseString(userString));
-
+        mBinding.setDetailViewModel(mDetailViewModel);
+        mBinding.setLifecycleOwner(this);
 
         RequestOptions options = new RequestOptions()
                 .centerCrop()
@@ -140,38 +133,24 @@ public class DetailActivity extends AppCompatActivity {
                 //  .apply
                 .into(mRestaurantPicture);
 
-        mRestaurantName.setText(mNameRestaurant);
-        mRestaurantAddress.setText(mAddressRestaurant);
+        // mRestaurantName.setText(mNameRestaurant);
+        // mRestaurantAddress.setText(mAddressRestaurant);
 
-//        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-//            Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
-//             Drawable drawableTop;
-//            if ((restaurant.getLikers() != null) && (restaurant.getLikers().contains(mCurrentId))) {
-//                drawableTop = ResourcesCompat.getDrawable(getResources(),R.drawable.ic_baseline_star_24,null);
-//                mLike = true;
-//            } else {
-//                drawableTop = ResourcesCompat.getDrawable(getResources(),R.drawable.ic_baseline_star_grey_24,null);
-//                mLike = false;
-//            }
-//            mLikeButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawableTop,null,null);
+//        mCallButton.setOnClickListener(view -> {
+//            callOnClickListener();
 //        });
-
-
-        mCallButton.setOnClickListener(view -> {
-            callOnClickListener();
-        });
-
-        mLikeButton.setOnClickListener(view -> {
-            likeOnClickListener();
-        });
-
-        mWebsiteButton.setOnClickListener(view -> {
-            webOnClickListener();
-        });
-
-        mFloatingActionButton.setOnClickListener(view -> {
-            addOnclicklistener();
-        });
+//
+//        mLikeButton.setOnClickListener(view -> {
+//            likeOnClickListener();
+//        });
+//
+//        mWebsiteButton.setOnClickListener(view -> {
+//            webOnClickListener();
+//        });
+//
+//        mFloatingActionButton.setOnClickListener(view -> {
+//            addOnclicklistener();
+//        });
 
     }
 
@@ -182,20 +161,60 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void updateFloatingButton(Boolean isLunch) {
-        if (isLunch) {
-            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_check_24);
-            mLunch = true;
-        } else {
-            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_add_circle_24);
-            mLunch = false;
-        }
+        mLunch = isLunch;
+
+//        if (isLunch) {
+//            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_check_24);
+//            mLunch = true;
+//        } else {
+//            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_add_circle_24);
+//            mLunch = false;
+//        }
     }
 
-    private void addOnclicklistener() {
+    public void addOnclicklistener() {
+        Log.d("TAG", "addOnclicklistener: ");
         createRestaurant();
-        if (mLunch) UserManager.updateUserRestaurant("", mCurrentId);
-        else UserManager.updateUserRestaurant(uid, mCurrentId);
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("notificationId", 42);
+        intent.putExtra("restaurantName", mNameRestaurant);
+        intent.putExtra("address", mAddressRestaurant);
+        String lunchers = "";
+        for (User user : mUsers) {
+            lunchers += user.getUserName() + " ";
+        }
+        intent.putExtra("lunchers", lunchers);
+
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (mLunch) {
+            UserManager.updateUserRestaurant("", mCurrentId, "");
+//            NotificationManager notificationManager =
+//                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//            notificationManager.cancel(42);
+            alarmManager.cancel(alarmIntent);
+        } else {
+            UserManager.updateUserRestaurant(uid, mCurrentId, mNameRestaurant);
+
+            Calendar currentTime = Calendar.getInstance();
+            currentTime.set(Calendar.HOUR_OF_DAY, 12);
+            currentTime.set(Calendar.MINUTE, 0);
+            currentTime.set(Calendar.SECOND, 0);
+            long notificationTime = currentTime.getTimeInMillis();
+
+            alarmManager.set(AlarmManager.RTC_WAKEUP,notificationTime,alarmIntent);
+
+
+        }
+       // mDetailViewModel.setIsLunch(mLunch);
         mDetailViewModel.changeUserRestaurant();
+
         //  mLikeViewModel.init(uid,mCurrentId);
 
     }
@@ -245,13 +264,13 @@ public class DetailActivity extends AppCompatActivity {
 //        mWebsiteUri = place.getWebsiteUri();
 //    }
 
-    private void webOnClickListener() {
+    public void webOnClickListener() {
         Intent intent = new Intent(Intent.ACTION_VIEW, mWebsiteUri);
         startActivity(intent);
 
     }
 
-    private void likeOnClickListener() {
+    public void likeOnClickListener() {
         createRestaurant();
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
@@ -259,7 +278,7 @@ public class DetailActivity extends AppCompatActivity {
         mDetailViewModel.changeLike();
     }
 
-    private void callOnClickListener() {
+    public void callOnClickListener() {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(Uri.parse("tel:" + mPhoneNumber));
         Log.d("TAG", "callOnClickListener: " + mPhoneNumber);
@@ -272,9 +291,9 @@ public class DetailActivity extends AppCompatActivity {
         //}
     }
 
-    private void changeLikeButtonIcon(boolean like) {
-        if (like) {
-
-        }
-    }
+//    private void changeLikeButtonIcon(boolean like) {
+//        if (like) {
+//
+//        }
+//    }
 }

@@ -43,6 +43,7 @@ public class DetailViewModel extends ViewModel {
     }
 
     public void setId (String placeId) {mPlaceId.setValue(placeId);}
+    //public void setIsLunch (boolean isLunch) {mUserRestaurantObservable.setValue(isLunch);}
 
     public final LiveData<Place> getPlaceObservable() { return  mPlaceObservable; }
     public final LiveData<Bitmap> getPhotoObservable() { return mPhotoObservable; }
@@ -50,7 +51,8 @@ public class DetailViewModel extends ViewModel {
     public void changeLike() {
         mLikeObservable.setValue(!mLikeObservable.getValue());
     }
-    public void changeUserRestaurant() {mUserRestaurantObservable.setValue(!mUserRestaurantObservable.getValue());}
+    public void changeUserRestaurant() {
+        mUserRestaurantObservable.setValue(!mUserRestaurantObservable.getValue()); }
     // public void isUpdate(String restaurantId) {mRestaurantId.setValue(restaurantId);}
 
     public final LiveData<Boolean> getIsLike() {return mLikeObservable; }

@@ -1,9 +1,19 @@
 package com.example.goforlunch.activity;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
 import android.util.Log;
@@ -12,32 +22,49 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.goforlunch.ListItemClickListener;
+import com.example.goforlunch.NotificationWorker;
 import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
 import com.example.goforlunch.viewmodel.PredictionViewModel;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
+import com.google.android.libraries.places.api.model.LocationBias;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class MapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         //  RecyclerFragment.AdapterListener,
-        MapFragment.MapMarkerListener,
+        //   MapFragment.MapMarkerListener,
+        LocationListener,
         ListItemClickListener {
 
     public static final String URL_IMAGE = "URLIMAGE";
@@ -63,29 +90,134 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private ArrayAdapter<String> mArrayAdapter;
     private SearchView.SearchAutoComplete mSearchAutoComplete;
     private static final CharacterStyle STYLE_BOLD = new StyleSpan(Typeface.BOLD);
+    // private FragmentViewModelListener mFragmentViewModelListener;
 
     private ArrayList<String> mData = new ArrayList<>();
     private List<AutocompletePrediction> mPredictions = new ArrayList<>();
     private List<String> mLikers = new ArrayList<>();
     private String mPlaceId;
+    private SharedPreferences mPreferences;
+    private String mCurrentId;
 
+    private Toolbar mToolbar;
+
+    private LatLng mInitialposition;
+    private LocationBias mBias;
+
+    //private FusedLocationProviderClient mFusedLocationProviderClient;
+    LocationManager mLocationManager;
+
+    @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+
         mBottomNavigationView = findViewById(R.id.mainactivity_bottom_navigation);
         Log.d(TAG, "onCreate: start mapactivity");
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
+        Log.d(TAG, "onActivityCreated: ID" + mCurrentId);
         configureBottomView();
+        //  mFragmentViewModelListener = (mSelectedFragment == MAP_FRAGMENT) ? mMapFragment : mRecyclerFragment;
+        Log.d("TAGGGGGGGGGGG", "onCreate: interface : " + (mSelectedFragment == MAP_FRAGMENT));
 
         mDrawerLayout = findViewById(R.id.map_activity_drawer_layout);
         mNavigationView = findViewById(R.id.map_activity_navigation_drawer);
+        mToolbar = findViewById(R.id.map_activity_toolbar);
+
+        setSupportActionBar(mToolbar);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this,
+                mDrawerLayout,
+                mToolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        mDrawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        mInitialposition =  new LatLng(47.390289, 0.688850);
+        mBias = restaurantsArea(mInitialposition);
+//                RectangularBounds.newInstance(
+//            new LatLng(47.38545, 0.67909), // SW lat, lng
+//
+//            new LatLng(47.39585, 0.69519) );// NE lat, lng
+        String[] perms = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+        if (EasyPermissions.hasPermissions(this, perms)) {
+            // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+
+        } else {
+            EasyPermissions.requestPermissions(this, "Need Location", 123, perms);
+        }
+
         mNavigationView.setNavigationItemSelectedListener(this);
 
         mNetworkViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(NetworkViewModel.class);
-        //mPredictionViewModel.init();
+        mNetworkViewModel.init(mCurrentId, mBias);
         observeViewModel();
 
+
+
+        // createNotificationChannel();
+        //NotificationWorker notificationWorker = new NotificationWorker(this, )
+
+//        Calendar currentDate = Calendar.getInstance();
+//        Calendar notificationDate = Calendar.getInstance();
+//
+//        notificationDate.set(Calendar.HOUR_OF_DAY, 12);
+//        notificationDate.set(Calendar.SECOND, 0);
+//        notificationDate.set(Calendar.MINUTE, 0);
+//
+//        if (notificationDate.before(currentDate))
+//            notificationDate.add(Calendar.HOUR, 24);
+//
+//        long delay = notificationDate.getTimeInMillis() - currentDate.getTimeInMillis();
+//
+////        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+////        NotificationCompat.Builder notificationBuild =
+////                new NotificationCompat.Builder(getApplicationContext(), "CHANNEL")
+////                        .setSmallIcon(R.drawable.ic_baseline_check_24)
+////                        .setContentTitle("notif titre")
+////                        .setContentText("Une notification")
+////                        .setPriority(NotificationCompat.PRIORITY_HIGH);
+////        notificationManager.notify(42, notificationBuild.build());
+//
+//
+//        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(NotificationWorker.class)
+//                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+//                .build();
+//
+//        WorkManager.getInstance(getApplicationContext()).enqueue(oneTimeWorkRequest);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            NotificationChannel channel = new NotificationChannel(
+                    "CHANNEL",
+                    "NOTIFICATION_CHANNEL_NAME",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("CHANNEL_DESCRIPTION");
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            Objects.requireNonNull(notificationManager).createNotificationChannel(channel);
+        }
+    }
+
+    public NetworkViewModel getNetworkViewModel() {
+        return mNetworkViewModel;
     }
 
     private void observeViewModel() {
@@ -93,6 +225,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mNetworkViewModel.getmLikersObservable().observe(this, this::updateLikers);
         Log.d("TAG", "observeViewModel: nameobserve");
         mNetworkViewModel.getLocationObservable().observe(this, this::updateLocation);
+        // mFragmentViewModelListener.observeFragmentViewModel(mNetworkViewModel);
 
     }
 
@@ -125,11 +258,11 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                         + id);
                 if (mSelectedFragment == MAP_FRAGMENT) {
                     mPlaceId = pred.getPlaceId();
-                mNetworkViewModel.newPos(pred.getPlaceId());}
-                else {
+                    mNetworkViewModel.newPos(pred.getPlaceId());
+                } else {
                     Log.d(TAG, "updateResults: startactivityyyyyyyyyyyyyyyyyyyy");
                     itemClick(pred.getPlaceId());
-                    
+
                 }
 
             });
@@ -138,6 +271,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     private void configureBottomView() {
         Log.d(TAG, "configureBottomView: entre");
+        updateMapFragment();
         mBottomNavigationView.setOnNavigationItemSelectedListener(item ->
                 updateFragment(item.getItemId()));
     }
@@ -282,18 +416,18 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 //        //WorkerAdapter newWorkerAdapeter = new WorkerAdapter(us)
 //    }
 
-    @Override
-    public void setSearchMarker(GoogleMap map) {
-        if (mSearchAutoComplete != null)
-            mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
-                String placeData = (String) parent.getItemAtPosition(position);
-                AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
-                itemClick(pred.getPlaceId());
-
-            });
-        else Log.d(TAG, "setSearchMarker: setNULLL");
-
-    }
+//    @Override
+//    public void setSearchMarker(GoogleMap map) {
+////        if (mSearchAutoComplete != null)
+////            mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+////                String placeData = (String) parent.getItemAtPosition(position);
+////                AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
+////                itemClick(pred.getPlaceId());
+////
+////            });
+////        else Log.d(TAG, "setSearchMarker: setNULLL");
+//
+//    }
 
     @Override
     public void itemClick(String placeId) {
@@ -308,8 +442,44 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         startActivity(intent);
     }
 
-//    public interface MapListener {
-//        void updateMap (LatLng position);
-//    }
+    @Override
+    public void onLocationChanged(Location location) {
+        mInitialposition = new LatLng(location.getLatitude(), location.getLongitude());
+        mBias = restaurantsArea(mInitialposition);
+    }
 
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    public interface FragmentViewModelListener {
+        void observeFragmentViewModel(NetworkViewModel networkViewModel);
+    }
+
+
+    public LatLng getInitialposition() {
+        return mInitialposition;
+    }
+
+    public LocationBias getBias() {
+        return mBias;
+    }
+
+    private LocationBias restaurantsArea(LatLng latLng) {
+        double delta = 0.01;
+        return RectangularBounds.newInstance(
+                new LatLng(latLng.latitude - delta, latLng.longitude - delta),
+                new LatLng(latLng.latitude + delta, latLng.longitude + delta));
+    }
 }

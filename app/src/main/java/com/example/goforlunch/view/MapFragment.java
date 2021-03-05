@@ -20,6 +20,8 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.goforlunch.ListItemClickListener;
 import com.example.goforlunch.R;
+import com.example.goforlunch.activity.MapActivity;
+import com.example.goforlunch.activity.MapActivity.FragmentViewModelListener;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
 import com.example.goforlunch.model.Place;
@@ -34,10 +36,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.model.LocationBias;
 
 import java.util.List;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener
+  //      , FragmentViewModelListener
+{
     public static final String TAG = "TAG";
 
     private static final String LATITUDE = "LAT";
@@ -49,23 +54,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private Handler handler = new Handler();
     private MapMarkerListener mMapMarkerListener;
     private List<String> mReservedRestaurants;
+    private NetworkViewModel mNetworkViewModel;
+    private LatLng mInitialPosition;
+    private LocationBias mBias;
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        mMapMarkerListener = (MapMarkerListener) context;
-    }
+//    @Override
+//    public void onAttach(@NonNull Context context) {
+//        super.onAttach(context);
+//        mMapMarkerListener = (MapMarkerListener) context;
+//    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "onActivityCreated: mapfragment super");
-        final NetworkViewModel networkViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
+        mNetworkViewModel = //((MapActivity) getActivity()).getNetworkViewModel();
+                ViewModelProviders.of(requireActivity(), Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
+        mInitialPosition = ((MapActivity) requireActivity()).getInitialposition();
+        mBias = ((MapActivity) requireActivity()).getBias();
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
-        networkViewModel.init("");
+        mNetworkViewModel.init("", mBias);
         Log.d(TAG, "onActivityCreated: mapfragment init");
-        observeViewModel(networkViewModel);
+        observeViewModel(mNetworkViewModel);
         Log.d(TAG, "onActivityCreated: mapfragment observe");
     }
 
@@ -73,8 +83,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         mReservedRestaurants = reservedRestaurants;
     }
 
-
-    private void observeViewModel(NetworkViewModel networkViewModel) {
+    //@Override
+    //public void observeFragmentViewModel(NetworkViewModel networkViewModel) {
+        public void observeViewModel(NetworkViewModel networkViewModel) {
         Log.d(TAG, "observeViewModel: mapfragment in observe");
         networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
         Log.d(TAG, "observeViewModel: mapgrgment fin observe");
@@ -89,7 +100,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             if (nearByPlace.getResults() != null) Log.d(TAG, "updateNearByPlace: cool mapfragment");
             else Log.d(TAG, "updateNearByPlace: Hmmmm mapfragment");
             for (Place p : nearByPlace.getResults()) {
-                mMap.addMarker(setMarkerOptions(p)).setTag(p);
+                mMap.addMarker(setMarkerOptions(p)).setTag(p.getId());
                 //getBitmap(R.drawable.google_map_restaurant_icon))).setTag(p);
                 Log.d(TAG, "updateNearByPlace: mark mapfragment");
             }
@@ -106,9 +117,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     }
 
     private BitmapDescriptor getIcon(String placeId) {
-        if (mReservedRestaurants.contains(placeId))
-            return getBitmap(R.drawable.google_map_restaurant_green);
-        else return getBitmap(R.drawable.google_map_restaurant_icon);
+        if (mReservedRestaurants != null) {
+            if (mReservedRestaurants.contains(placeId))
+                return getBitmap(R.drawable.google_map_restaurant_green);
+            else return getBitmap(R.drawable.google_map_restaurant_icon);
+        }
+       return getBitmap(R.drawable.google_map_restaurant_icon);
     }
 
     @NonNull
@@ -131,7 +145,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 .findFragmentById(R.id.map_fragment);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
-            mMapMarkerListener.setSearchMarker(mMap);
+           // mMapMarkerListener.setSearchMarker(mMap);
             Log.d(TAG, "onCreateView: nonnll nonnull mapfragment");
         } else Log.d(TAG, "onCreateView: nonnull null mapfragment");
         // }
@@ -141,9 +155,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         return mapView;
     }
 
-    private LatLng initialPosition() {
-        return new LatLng(47.390289, 0.688850);
-    }
+    //private LatLng initialPosition() {
+     //   return new LatLng(47.390289, 0.688850);
+   // }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -158,7 +172,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
         }
         //mMap.addMarker(new MarkerOptions().position(initialPosition()).title("Centre du monde"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(initialPosition()));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(mInitialPosition));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
         mMap.setOnMarkerClickListener(this);
     }
@@ -259,6 +273,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
+
+//    public void setSearchMarker() {
+//        if (mSearchAutoComplete != null)
+//            mSearchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
+//                String placeData = (String) parent.getItemAtPosition(position);
+//                AutocompletePrediction pred = mPredictions.get(mData.indexOf(placeData));
+//                itemClick(pred.getPlaceId());
+//
+//            });
+//        else Log.d(TAG, "setSearchMarker: setNULLL");
+//
+//    }
 
 }
 

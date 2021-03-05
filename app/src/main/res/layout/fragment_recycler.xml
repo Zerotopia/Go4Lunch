@@ -6,12 +6,12 @@
     android:layout_height="match_parent"
     android:id="@+id/linearlayout">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textfrag"
-        android:autofillHints="Search"
-        android:layout_gravity="center"/>
+<!--    <EditText-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:id="@+id/textfrag"-->
+<!--        android:autofillHints="Search"-->
+<!--        android:layout_gravity="center"/>-->
 
 <!--    <fragment android:id="@+id/autocomplete_fragment"-->
 <!--        android:layout_width="match_parent"-->

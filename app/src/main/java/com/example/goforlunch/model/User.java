@@ -29,6 +29,8 @@ public class User {
     // @SerializedName("RestaurantId")
     private String RestaurantId;
 
+    private String RestaurantName;
+
 
     public User() {
     }
@@ -62,6 +64,14 @@ public class User {
     // public void setActive(boolean active) {
     //     mIsActive = active;
     // }
+
+    public String getRestaurantName() {
+        return RestaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        RestaurantName = restaurantName;
+    }
 
     public String getRestaurantId() {
         return RestaurantId;

@@ -25,6 +25,9 @@ import java.util.List;
 public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
 
     private List<User> mUserList;
+
+
+
     private boolean mDetail;
 
 
@@ -52,7 +55,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
 //        Log.d("TAG", "onBindViewHolder:  setUser done");
 //        holder.setImage(user);
 //        Log.d("TAG", "onBindViewHolder:  setImage done ");
-        holder.bindUser(user);
+        holder.bindUser(user, mDetail);
     }
 
     @Override
@@ -82,8 +85,9 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
        //     mStorageReference = mFirebaseStorage.getReference();
         }
 
-        public void bindUser (User user) {
+        public void bindUser (User user, Boolean detail) {
             mBinding.setUser(user);
+            mBinding.setList(detail);
             mBinding.executePendingBindings();
         }
 
@@ -116,6 +120,14 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
 //           // });
 //            Log.d("TAG", "setImage:  end");
 //        }
+    }
+
+    public boolean isDetail() {
+        return mDetail;
+    }
+
+    public void setDetail(boolean detail) {
+        mDetail = detail;
     }
 }
 

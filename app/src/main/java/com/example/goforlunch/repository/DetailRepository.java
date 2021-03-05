@@ -5,6 +5,7 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.goforlunch.R;
 import com.example.goforlunch.RestaurantManager;
 import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.Restaurant;
@@ -97,10 +98,7 @@ public class DetailRepository {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
             User user = documentSnapshot.toObject(User.class);
-            if (user.getRestaurantId().equals(restaurantId))
-                data.setValue(true);
-            else
-                data.setValue(false);
+                data.setValue(user.getRestaurantId().equals(restaurantId));
         });
         return data;
     }

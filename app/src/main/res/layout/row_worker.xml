@@ -3,37 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="user"
             type="com.example.goforlunch.model.User" />
+
+        <variable
+            name="list"
+            type="java.lang.Boolean" />
     </data>
 
-<LinearLayout
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/row_worker"
-    android:weightSum="10"
-    android:padding="10dp"
-    android:divider="@null"
-    >
-
-    <ImageView
-        android:layout_width="0dp"
+    <LinearLayout
+        android:id="@+id/row_worker"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:id="@+id/profile_imageview"
-        app:userImage="@{user.photo}"
-        />
+        android:divider="@null"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:weightSum="10">
 
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="8"
-        android:id="@+id/choice_textview"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="20dp"
-        android:text="@{user.userName + `lunch in` + user.restaurantId}"
-        />
-</LinearLayout>
+        <ImageView
+            android:id="@+id/profile_imageview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            app:userImage="@{user.photo}" />
+
+        <TextView
+            android:id="@+id/choice_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="20dp"
+            android:layout_weight="8"
+            android:text="@{user.userName + (list ? ` ìs joining.` : ` lunch in ` + user.restaurantName )}" />
+        <!--        android:text="@{wadapter.detail ? user.userName + `lunch in ` + user.restaurantName : -->
+        <!--            user.userName + `ìs joining`}"-->
+
+    </LinearLayout>
 </layout>

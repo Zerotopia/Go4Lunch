@@ -25,12 +25,15 @@ public class NetworkViewModel extends ViewModel {
     private MutableLiveData<List<String>> mRestaurantObservable;
     private MutableLiveData<List<User>> mWorkersObservable;
     private NetworkRepository mNetworkRepository;
+    private LocationBias mBias;
 
     public NetworkViewModel(NetworkRepository networkRepository) {
         mNetworkRepository = networkRepository;
     }
 
-    public void init(String userId) {
+    public void init(String userId, LocationBias bias) {
+        mBias = bias;
+
         if (mNetworkObservable != null) return;
         mNetworkObservable = mNetworkRepository.getNearByPlace();
         mRestaurantObservable = mNetworkRepository.getReservedRestaurant();
@@ -50,11 +53,12 @@ public class NetworkViewModel extends ViewModel {
 
     private MutableLiveData<String> mQuery = new MutableLiveData<>();
     private MutableLiveData<String> mPlaceId = new MutableLiveData<>();
-    private LocationBias BIAS = RectangularBounds.newInstance(
-            new LatLng(47.38545, 0.67909), // SW lat, lng
-            new LatLng(47.39585, 0.69519) );// NE lat, lng
+//    private LocationBias BIAS = RectangularBounds.newInstance(
+//            new LatLng(47.38545, 0.67909), // SW lat, lng
+    //        new LatLng(47.390289, 0.688850);
+//            new LatLng(47.39585, 0.69519) );// NE lat, lng
     private final LiveData<List<AutocompletePrediction>> mPredictionObservable
-            = Transformations.switchMap(mQuery, (query) -> mNetworkRepository.getPlacePredictions(query, BIAS));
+            = Transformations.switchMap(mQuery, (query) -> mNetworkRepository.getPlacePredictions(query, mBias));
     private final LiveData<LatLng> mLocationObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPlaceLocation(placeId));
     private  final LiveData<Place> mPhoneObservable =
@@ -69,6 +73,8 @@ public class NetworkViewModel extends ViewModel {
 
     private final LiveData<List<String>> mLikersObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getLikers(placeId));
+
+
     public void newQuery(String query) {
         mQuery.setValue(query);
     }
