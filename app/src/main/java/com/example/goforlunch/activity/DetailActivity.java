@@ -78,6 +78,9 @@ public class DetailActivity extends AppCompatActivity {
     private boolean mLike;
     private boolean mLunch;
 
+    private Restaurant mCurrentRestaurant;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,11 +107,11 @@ public class DetailActivity extends AppCompatActivity {
         mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
         mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
         mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
-        mLikers = intent.getStringArrayListExtra(MapActivity.LIST_LIKERS);
-        if (mLikers == null) {
-            mLikers = new ArrayList<>();
-            Log.d("TAG", "onCreate: null");
-        }
+//        mLikers = intent.getStringArrayListExtra(MapActivity.LIST_LIKERS);
+//        if (mLikers == null) {
+//            mLikers = new ArrayList<>();
+//            Log.d("TAG", "onCreate: null");
+//        }
 
         Log.d("TAG", ": In detailactivity : url :" + mUrlImage + ", namer : " + mNameRestaurant + ", id: " + uid + ", addr: " + mAddressRestaurant);
 
@@ -175,16 +178,17 @@ public class DetailActivity extends AppCompatActivity {
     public void addOnclicklistener() {
         Log.d("TAG", "addOnclicklistener: ");
         createRestaurant();
+        RestaurantManager.updateRestaurantLunchers(mCurrentRestaurant.getNumberOfLunchers() - 1,mCurrentRestaurant.getId());
+
 
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("notificationId", 42);
         intent.putExtra("restaurantName", mNameRestaurant);
         intent.putExtra("address", mAddressRestaurant);
-        String lunchers = "";
-        for (User user : mUsers) {
-            lunchers += user.getUserName() + " ";
-        }
-        intent.putExtra("lunchers", lunchers);
+        intent.putExtra("userId", mCurrentId);
+        intent.putExtra("restaurantId", uid);
+
+      //  intent.putExtra("lunchers", lunchers);
 
         PendingIntent alarmIntent = PendingIntent.getBroadcast(
                 this,
@@ -195,12 +199,17 @@ public class DetailActivity extends AppCompatActivity {
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         if (mLunch) {
             UserManager.updateUserRestaurant("", mCurrentId, "");
-//            NotificationManager notificationManager =
+           //            NotificationManager notificationManager =
 //                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 //            notificationManager.cancel(42);
             alarmManager.cancel(alarmIntent);
         } else {
             UserManager.updateUserRestaurant(uid, mCurrentId, mNameRestaurant);
+            RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
+                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                RestaurantManager.updateRestaurantLunchers(currentRestaurant.getNumberOfLunchers() + 1,uid);
+            });
+            mDetailViewModel.updateCurrentRestaurant();
 
             Calendar currentTime = Calendar.getInstance();
             currentTime.set(Calendar.HOUR_OF_DAY, 12);
@@ -225,7 +234,9 @@ public class DetailActivity extends AppCompatActivity {
             if (currentRestaurant == null) {
                 RestaurantManager.createRestaurant(uid);
                 RestaurantManager.updateRestaurantName(mNameRestaurant, uid);
+                RestaurantManager.updateRestaurantLunchers(0,uid);
             }
+
         });
     }
 
@@ -235,6 +246,14 @@ public class DetailActivity extends AppCompatActivity {
         mDetailViewModel.getIsLunch().observe(this, this::updateFloatingButton);
         mDetailViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
         mDetailViewModel.getIsLike().observe(this, this::updateLikeButton);
+        mDetailViewModel.getCurrentRestaurantId().observe(this, this::updateRestaurant);
+    }
+
+    private void updateRestaurant(String currentRestaurantId) {
+        RestaurantManager.getRestaurant(currentRestaurantId).addOnSuccessListener(documentSnapshot -> {
+            mCurrentRestaurant = documentSnapshot.toObject(Restaurant.class);
+            mCurrentRestaurant.setId(documentSnapshot.getId());
+        });
     }
 
     private void updateImage(Bitmap bitmap) {
@@ -275,6 +294,7 @@ public class DetailActivity extends AppCompatActivity {
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
         RestaurantManager.updateRestaurantLikers(mLikers, uid);
+        // view model
         mDetailViewModel.changeLike();
     }
 

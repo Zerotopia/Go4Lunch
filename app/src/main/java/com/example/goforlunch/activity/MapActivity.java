@@ -107,6 +107,13 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     //private FusedLocationProviderClient mFusedLocationProviderClient;
     LocationManager mLocationManager;
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mNetworkViewModel.initTotalUsers();
+        mNetworkViewModel.getTotalUsersObservable().observe(this,this::updateTotalUsers);
+    }
+
     @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +126,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
         Log.d(TAG, "onActivityCreated: ID" + mCurrentId);
-        configureBottomView();
+       // configureBottomView();
         //  mFragmentViewModelListener = (mSelectedFragment == MAP_FRAGMENT) ? mMapFragment : mRecyclerFragment;
         Log.d("TAGGGGGGGGGGG", "onCreate: interface : " + (mSelectedFragment == MAP_FRAGMENT));
 
@@ -137,8 +144,8 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mDrawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        mInitialposition =  new LatLng(47.390289, 0.688850);
-        mBias = restaurantsArea(mInitialposition);
+        //mInitialposition =  new LatLng(47.390289, 0.688850);
+        //mBias = restaurantsArea(mInitialposition);
 //                RectangularBounds.newInstance(
 //            new LatLng(47.38545, 0.67909), // SW lat, lng
 //
@@ -157,8 +164,9 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
         mNetworkViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(NetworkViewModel.class);
-        mNetworkViewModel.init(mCurrentId, mBias);
-        observeViewModel();
+
+        //mNetworkViewModel.init(mCurrentId, mBias);
+       // observeViewModel();
 
 
 
@@ -193,6 +201,11 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 //
 //        WorkManager.getInstance(getApplicationContext()).enqueue(oneTimeWorkRequest);
 
+    }
+
+    private void updateTotalUsers(Integer totalUsers) {
+        mNetworkViewModel.init(mCurrentId,mBias,totalUsers);
+        observeViewModel();
     }
 
     @Override
@@ -296,7 +309,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
     private void updateMapFragment() {
-        mMapFragment = MapFragment.newInstance(new LatLng(0, 0));
+        mMapFragment = MapFragment.newInstance(mInitialposition);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.top_view_container, mMapFragment)
@@ -444,8 +457,16 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     @Override
     public void onLocationChanged(Location location) {
-        mInitialposition = new LatLng(location.getLatitude(), location.getLongitude());
+         mInitialposition = new LatLng(location.getLatitude(), location.getLongitude());
+        //mInitialposition =  new LatLng(47.390289, 0.688850);
+        Log.d(TAG, "onLocationChanged: ----------------------------------------------------");
+        Log.d(TAG, "onLocationChanged: " + mInitialposition.toString());
+        Log.d(TAG, "onLocationChanged: ++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        mLocationManager.removeUpdates(this);
+       // mLocationManager = null;
         mBias = restaurantsArea(mInitialposition);
+        configureBottomView();
     }
 
     @Override

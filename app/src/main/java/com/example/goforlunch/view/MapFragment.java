@@ -70,10 +70,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Log.d(TAG, "onActivityCreated: mapfragment super");
         mNetworkViewModel = //((MapActivity) getActivity()).getNetworkViewModel();
                 ViewModelProviders.of(requireActivity(), Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
-        mInitialPosition = ((MapActivity) requireActivity()).getInitialposition();
+       // mInitialPosition = ((MapActivity) requireActivity()).getInitialposition();
         mBias = ((MapActivity) requireActivity()).getBias();
         Log.d(TAG, "onActivityCreated: mapfragment viewModel");
-        mNetworkViewModel.init("", mBias);
+        mNetworkViewModel.init("", mBias, 0);
         Log.d(TAG, "onActivityCreated: mapfragment init");
         observeViewModel(mNetworkViewModel);
         Log.d(TAG, "onActivityCreated: mapfragment observe");
@@ -143,6 +143,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Log.d(TAG, "onCreateView: not null mapfragment ");
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_fragment);
+
+        if (getArguments() != null)
+            mInitialPosition = new LatLng(getArguments().getDouble(LATITUDE),getArguments().getDouble(LONGITUDE));
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
            // mMapMarkerListener.setSearchMarker(mMap);

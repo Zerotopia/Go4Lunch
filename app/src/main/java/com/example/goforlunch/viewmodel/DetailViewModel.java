@@ -2,7 +2,6 @@ package com.example.goforlunch.viewmodel;
 
 import android.graphics.Bitmap;
 
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -31,6 +30,8 @@ public class DetailViewModel extends ViewModel {
     // = Transformations.switchMap(mRestaurantId, (restaurantId) -> mLikeRepository.isLunch(restaurantId));
     private LiveData<List<User>> mUsersObservable;
 
+    private MutableLiveData<String> mCurrentRestaurantIdObservable;
+
 
     public DetailViewModel(DetailRepository detailRepository) {
         mDetailRepository = detailRepository;
@@ -39,7 +40,8 @@ public class DetailViewModel extends ViewModel {
     public void init(String restaurantId, String userId) {
         mLikeObservable = mDetailRepository.isLike(restaurantId,userId);
         mUserRestaurantObservable = mDetailRepository.isLunch(restaurantId,userId);
-        mUsersObservable = mDetailRepository.getUsers(restaurantId,userId);
+        mUsersObservable = mDetailRepository.getLunchers(restaurantId,userId);
+        mCurrentRestaurantIdObservable = mDetailRepository.getCurrentRestaurantId(userId);
     }
 
     public void setId (String placeId) {mPlaceId.setValue(placeId);}
@@ -53,6 +55,8 @@ public class DetailViewModel extends ViewModel {
     }
     public void changeUserRestaurant() {
         mUserRestaurantObservable.setValue(!mUserRestaurantObservable.getValue()); }
+
+    public void updateCurrentRestaurant() {mCurrentRestaurantIdObservable.setValue(mCurrentRestaurantIdObservable.getValue());}
     // public void isUpdate(String restaurantId) {mRestaurantId.setValue(restaurantId);}
 
     public final LiveData<Boolean> getIsLike() {return mLikeObservable; }
@@ -60,4 +64,6 @@ public class DetailViewModel extends ViewModel {
     public final LiveData<Boolean> getIsLunch() { return  mUserRestaurantObservable; }
 
     public final LiveData<List<User>> getUsersLunch() { return mUsersObservable; }
+
+    public final LiveData<String> getCurrentRestaurantId() {return mCurrentRestaurantIdObservable;}
 }

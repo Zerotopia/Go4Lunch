@@ -46,6 +46,13 @@ public class RecyclerFragment extends Fragment {
     private FragmentRecyclerBinding mBinding;
     private NetworkViewModel mNetworkViewModel;
 
+    private List<Double> mRatioLike;
+    private NearByPlace mNearByPlace;
+    private List<Integer> mNumberOfLunchers;
+
+    private boolean mRatioOk = false;
+    private boolean mLuncherOk = false;
+
     @NonNull
     public static RecyclerFragment newInstance(boolean listView) {
         RecyclerFragment recyclerFragment = new RecyclerFragment();
@@ -70,9 +77,34 @@ public class RecyclerFragment extends Fragment {
     //@Override
     public void observeViewModel(NetworkViewModel networkViewModel) {
         Log.d(TAG, "observeViewModel: mapfragment in observe");
+      //  networkViewModel.getTotalUsersObservable().observe(this, this::updateTotalusers);
         networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
         Log.d(TAG, "observeViewModel: mapgrgment fin observe");
         networkViewModel.getWorkersObservable().observe(this, this::updateWorkers);
+
+    }
+
+//    private void updateTotalusers(Integer integer) {
+//        mNetworkViewModel.getRatioObservable().observe(this, this::updateRatioList);
+//
+//    }
+
+    private void updateRatioList(List<Double> ratios) {
+        Log.d(TAG, "updateRatioList: 1111111111111111111111111111111111");
+        mRatioLike = ratios;
+        mRatioOk = true;
+        setRecyclerView();
+
+    }
+
+    private void setRecyclerView() {
+        if (mRatioOk && mLuncherOk) {
+            mRatioOk = false;
+            mLuncherOk = false;
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+            mRecyclerView.setAdapter(new RestaurantAdapter(mNearByPlace.getResults(), mRatioLike, mNumberOfLunchers));
+        }
     }
 
     private void updateWorkers(List<User> users) {
@@ -88,11 +120,25 @@ public class RecyclerFragment extends Fragment {
     private void updateNearByPlace(NearByPlace nearByPlace) {
         Log.d(TAG, "updnAAAAAAAAAt");
         if ((nearByPlace.getResults() != null) && (mList)) {
-            Log.d(TAG, "updateNearByPlace: cool mapfragment  :: " + nearByPlace.getResults().size());
-            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-            mRecyclerView.setLayoutManager(layoutManager);
-            mRecyclerView.setAdapter(new RestaurantAdapter(nearByPlace.getResults()));
+            mNearByPlace = nearByPlace;
+            Log.d(TAG, "updateNearByPlace: sssssiiiiizzzzee :::  " + nearByPlace.getResults().size());
+            Log.d(TAG, "updateNearByPlace: siiiiizzeesizzze ::  " + mNearByPlace.getResults().size());
+            mNetworkViewModel.newPlaces(mNearByPlace);
+            mNetworkViewModel.getRatioObservable().observe(this, this::updateRatioList);
+
+            mNetworkViewModel.getNumberOfLuncherObservable().observe(this, this::updateNumberOfLuncher);
+//            Log.d(TAG, "updateNearByPlace: cool mapfragment  :: " + nearByPlace.getResults().size());
+//            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+//            mRecyclerView.setLayoutManager(layoutManager);
+//            Log.d(TAG, "updateNearByPlace:  2222222222222222222222222222222222222");
+//            mRecyclerView.setAdapter(new RestaurantAdapter(nearByPlace.getResults(), mRatioLike));
         } else Log.d(TAG, "updateNearByPlace: Hmmmm mapfragment");
+    }
+
+    private void updateNumberOfLuncher(List<Integer> integers) {
+        mNumberOfLunchers = integers;
+        mLuncherOk = true;
+        setRecyclerView();
     }
 
     @Override

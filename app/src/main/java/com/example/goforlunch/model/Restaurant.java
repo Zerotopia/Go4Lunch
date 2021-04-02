@@ -12,6 +12,7 @@ public class Restaurant {
   private List<String> Likers;
   private String Id;
   private String Name;
+  private int NumberOfLunchers;
 
     public String getId() {
         return Id;
@@ -27,6 +28,14 @@ public class Restaurant {
 
     public void setName(String name) {
         Name = name;
+    }
+
+    public int getNumberOfLunchers() {
+        return NumberOfLunchers;
+    }
+
+    public void setNumberOfLunchers(int numberOfLunchers) {
+        NumberOfLunchers = numberOfLunchers;
     }
 
     public Restaurant() {

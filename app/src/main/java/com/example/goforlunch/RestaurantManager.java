@@ -46,6 +46,9 @@ public class RestaurantManager {
         return getRestaurantsCollection().document(uid).update("Name", name);
     }
 
+    public static Task<Void> updateRestaurantLunchers(int numberOfLuncher, String uid) {
+        return getRestaurantsCollection().document(uid).update("NumberOfLunchers", numberOfLuncher);
+    }
     // --- DELETE ---
 
     public static Task<Void> deleteRestaurant(String uid) {

@@ -30,6 +30,8 @@ public class DetailRepository {
         mPlacesClient = placesClient;
     }
 
+    public DetailRepository () {}
+
     public MutableLiveData<Place> getPlace(String placeId) {
         final MutableLiveData<Place> data = new MutableLiveData<>();
         final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER,Place.Field.WEBSITE_URI,Place.Field.ADDRESS,Place.Field.NAME);
@@ -103,7 +105,7 @@ public class DetailRepository {
         return data;
     }
 
-    public MutableLiveData<List<User>> getUsers(String restaurantId, String userId) {
+    public MutableLiveData<List<User>> getLunchers(String restaurantId, String userId) {
         MutableLiveData<List<User>> data = new MutableLiveData<>();
         UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
             List<User> users = new ArrayList<>();
@@ -111,6 +113,15 @@ public class DetailRepository {
                 if (!documentSnapshot.getId().equals(userId))
                     users.add(documentSnapshot.toObject(User.class));
             data.setValue(users);
+        });
+        return data;
+    }
+
+    public MutableLiveData<String> getCurrentRestaurantId(String userId) {
+        MutableLiveData<String> data = new MutableLiveData<>();
+        UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
+            User user = documentSnapshot.toObject(User.class);
+            data.setValue(user.getRestaurantId());
         });
         return data;
     }

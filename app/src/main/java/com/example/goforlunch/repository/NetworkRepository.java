@@ -3,6 +3,7 @@ package com.example.goforlunch.repository;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.goforlunch.RestaurantManager;
@@ -12,6 +13,10 @@ import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCanceledListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.LocationBias;
@@ -23,10 +28,12 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,6 +45,7 @@ public class NetworkRepository {
 
     private PlacesClient mPlacesClient;
     private AutocompleteSessionToken mSessionToken;
+    // private int mTotalUsers;
 
     public NetworkRepository(MapService mapService, PlacesClient placesClient, AutocompleteSessionToken sessionToken) {
         mMapService = mapService;
@@ -45,9 +53,9 @@ public class NetworkRepository {
         mSessionToken = sessionToken;
     }
 
-   // public NetworkRepository(MapService mapService) {
-      //  mMapService = mapService;
-  //  }
+    // public NetworkRepository(MapService mapService) {
+    //  mMapService = mapService;
+    //  }
 
 
     public MutableLiveData<NearByPlace> getNearByPlace() {
@@ -162,7 +170,7 @@ public class NetworkRepository {
 
     public MutableLiveData<Place> getPlacePhone(String placeId) {
         final MutableLiveData<Place> data = new MutableLiveData<>();
-        final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER,Place.Field.WEBSITE_URI);
+        final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER, Place.Field.WEBSITE_URI);
         final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
         mPlacesClient.fetchPlace(request).addOnSuccessListener(fetchPlaceResponse -> {
             Log.d("TAG", "getPlaceLocation: notNPE1");
@@ -215,7 +223,7 @@ public class NetworkRepository {
 
     public MutableLiveData<com.example.goforlunch.model.Place> getPlace(String placeId) {
         final MutableLiveData<com.example.goforlunch.model.Place> data = new MutableLiveData<>();
-        final List<Place.Field> placeFields = Arrays.asList(Place.Field.NAME,Place.Field.ADDRESS);
+        final List<Place.Field> placeFields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS);
         final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
         mPlacesClient.fetchPlace(request).addOnSuccessListener(fetchPlaceResponse -> {
             Log.d("TAG", "getPlaceLocation: notNPE1");
@@ -258,6 +266,86 @@ public class NetworkRepository {
             } else {
                 data.setValue(currentRestaurant.getLikers());
             }
+        });
+        return data;
+    }
+
+    public MutableLiveData<List<Double>> getRatio(NearByPlace nearByPlace, int totalUsers) {
+        final MutableLiveData<List<Double>> data = new MutableLiveData<>();
+        final List<Double> dataList = new ArrayList<>();
+//        UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
+//           mTotalUsers = queryDocumentSnapshots.size();
+//        });
+        RestaurantManager.getAllRestaurant().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<Restaurant> restaurants = queryDocumentSnapshots.toObjects(Restaurant.class);
+            for (com.example.goforlunch.model.Place place : nearByPlace.getResults())
+                dataList.add((double) ((ratioRestaurant(place.getId(), restaurants)) / totalUsers));
+            data.setValue(dataList);
+        });
+        return data;
+    }
+
+//        Log.d("TAG", "getRatio: REPOSITORY ::: nerabyplace : " + nearByPlace.getResults().size());
+//
+//        //for (com.example.goforlunch.model.Place place : nearByPlace.getResults()) {
+//        Log.d("TAG", "getRati in for boucle");
+//            RestaurantManager.getRestaurant(place.getId()).addOnSuccessListener(documentSnapshot -> {
+//                Log.d("TAG", "getRatio: successlistenr");
+//                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+//                if (currentRestaurant == null) {
+//                    dataList.add(0.0);
+//                    Log.d("TAG", "getRatio: REPOSITORY :: null :" + dataList.size());
+//                } else {
+//
+//                    dataList.add((double) ((currentRestaurant.getLikers().size()) / totalUsers));
+//                    Log.d("TAG", "getRatio: REPOSITORY :: nonnul :"+ dataList.size() );
+//                }
+//                data.setValue(dataList);
+//            }).addOnFailureListener(e -> {
+//                Log.d("TAG", "getRatio: error" + e.getMessage());
+//            }).addOnCanceledListener(() -> {
+//                Log.d("TAG", "getRatio: cancel");
+//            }).addOnCompleteListener(task -> {
+//                Log.d("TAG", "getRatio: onComplete ");
+//            });
+//        }
+//        Log.d("TAG", "getRatio: REPOSITORY" + dataList.size());
+//
+//        return data;
+//    }
+
+    private int ratioRestaurant(String id, List<Restaurant> restaurants) {
+        for (Restaurant restaurant : restaurants)
+            if (id.equals(restaurant.getId())) return restaurant.getLikers().size();
+        return 0;
+    }
+
+    public MutableLiveData<List<Integer>> getNumberOfLuncher(NearByPlace nearByPlace) {
+        final MutableLiveData<List<Integer>> data = new MutableLiveData<>();
+        final List<Integer> dataList = new ArrayList<>();
+//        UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
+//           mTotalUsers = queryDocumentSnapshots.size();
+//        });
+        RestaurantManager.getAllRestaurant().addOnSuccessListener(queryDocumentSnapshots -> {
+
+            List<Restaurant> restaurants = queryDocumentSnapshots.toObjects(Restaurant.class);
+            for (com.example.goforlunch.model.Place place : nearByPlace.getResults())
+                dataList.add(numberOfLuncher (place.getId(), queryDocumentSnapshots));
+            data.setValue(dataList);
+        });
+        return data;
+    }
+
+    private int numberOfLuncher(String id, QuerySnapshot querySnapshot) {
+        for (DocumentSnapshot documentSnapshot : querySnapshot)
+            if (id.equals(documentSnapshot.getId())) return documentSnapshot.toObject(Restaurant.class).getNumberOfLunchers();
+        return 0;
+    }
+
+    public MutableLiveData<Integer> getTotalUsers() {
+        final MutableLiveData<Integer> data = new MutableLiveData<>();
+        UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
+            data.setValue(queryDocumentSnapshots.size());
         });
         return data;
     }

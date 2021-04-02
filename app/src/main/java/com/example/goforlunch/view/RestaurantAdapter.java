@@ -1,9 +1,11 @@
 package com.example.goforlunch.view;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,9 +24,13 @@ import java.util.List;
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
 
     private List<Place> mPlaces;
+    private List<Double> mRatioLike;
+    private List<Integer> mNumberOfLunchers;
 
-    public RestaurantAdapter(List<Place> places) {
+    public RestaurantAdapter(List<Place> places, List<Double> ratioLike, List<Integer> numberOfLunchers) {
         mPlaces = places;
+        mRatioLike = ratioLike;
+        mNumberOfLunchers = numberOfLunchers;
     }
 
     @NonNull
@@ -37,7 +43,11 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
     @Override
     public void onBindViewHolder(@NonNull RestaurantAdapter.RestaurantViewHolder holder, int position) {
         Place place = mPlaces.get(position);
+        double ratioPlace = mRatioLike.get(position);
+        Integer numberOfLuncher = mNumberOfLunchers.get(position);
         holder.place = place;
+        holder.ratioPlace = ratioPlace;
+        holder.numberOfluncher = numberOfLuncher;
         holder.setRestaurantInfo();
         holder.setLuncherInfo();
         holder.setRestaurantPicture();
@@ -56,9 +66,11 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         TextView restaurantAddress;
         TextView restaurantOpen;
         TextView numberLuncher;
-        TextView ratio;
+        RatingBar ratio;
         ImageView restaurantPicture;
         Place place;
+        double ratioPlace;
+        Integer numberOfluncher;
 
         public RestaurantViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -110,8 +122,21 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         }
 
         public void setLuncherInfo () {
-            numberLuncher.setText("2");
-            ratio.setText(place.getRatio().toString());
+            numberLuncher.setText(numberOfluncher.toString());
+//            Log.d("TAG", "setLuncherInfo:  ratioPlace :: " + ratioPlace);
+//            Log.d("TAG", "setLuncherInfo:  ratio ::::::: " + place.getRatio());
+//            Log.d("TAG", "setLuncherInfo:  result :::::: " + computeRatio(ratioPlace,place.getRatio()));
+            //Integer s = computeRatio(ratioPlace,place.getRatio());
+            ratio.setNumStars(computeRatio(ratioPlace, place.getRatio()));
+            ratio.setRating(computeRatio(ratioPlace, place.getRatio()));
+        }
+
+        private Integer computeRatio(double ratioPlace, Double ratio) {
+            double result = 3 * (0.7 * ratioPlace + 0.3 * (ratio / 5.0));
+            if (result <= 0.5) return 0;
+            if (result <= 1.5) return 1;
+            if (result <= 2.5) return 2;
+            return 3;
         }
 
         public void setRestaurantPicture () {

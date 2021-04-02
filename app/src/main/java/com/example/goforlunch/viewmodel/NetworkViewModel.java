@@ -26,14 +26,22 @@ public class NetworkViewModel extends ViewModel {
     private MutableLiveData<List<User>> mWorkersObservable;
     private NetworkRepository mNetworkRepository;
     private LocationBias mBias;
+    private int mTotalUsers;
+    private LiveData<Integer> mTotalUsersObservable; //
+
 
     public NetworkViewModel(NetworkRepository networkRepository) {
         mNetworkRepository = networkRepository;
     }
 
-    public void init(String userId, LocationBias bias) {
-        mBias = bias;
+    public void initTotalUsers() {
+        mTotalUsersObservable = mNetworkRepository.getTotalUsers();
 
+    }
+
+    public void init(String userId, LocationBias bias, int totalUsers) {
+        mBias = bias;
+        mTotalUsers = totalUsers;
         if (mNetworkObservable != null) return;
         mNetworkObservable = mNetworkRepository.getNearByPlace();
         mRestaurantObservable = mNetworkRepository.getReservedRestaurant();
@@ -53,6 +61,7 @@ public class NetworkViewModel extends ViewModel {
 
     private MutableLiveData<String> mQuery = new MutableLiveData<>();
     private MutableLiveData<String> mPlaceId = new MutableLiveData<>();
+    private MutableLiveData<NearByPlace> mPlaces = new MutableLiveData<>();
 //    private LocationBias BIAS = RectangularBounds.newInstance(
 //            new LatLng(47.38545, 0.67909), // SW lat, lng
     //        new LatLng(47.390289, 0.688850);
@@ -74,11 +83,17 @@ public class NetworkViewModel extends ViewModel {
     private final LiveData<List<String>> mLikersObservable =
             Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getLikers(placeId));
 
+    private final LiveData<List<Double>> mRatioObservable =
+            Transformations.switchMap(mPlaces, (nearbyPlace) -> mNetworkRepository.getRatio(nearbyPlace, mTotalUsers));
+
+    private final LiveData<List<Integer>> mNumberOfLuncherObservable =
+            Transformations.switchMap(mPlaces, (nearbyplace) -> mNetworkRepository.getNumberOfLuncher(nearbyplace));
 
     public void newQuery(String query) {
         mQuery.setValue(query);
     }
     public void newPos (String placeId) {mPlaceId.setValue(placeId);};
+    public void newPlaces (NearByPlace places) {mPlaces.setValue(places);}
 
     public final LiveData<List<AutocompletePrediction>> getPredictionObservable() {
         return mPredictionObservable;
@@ -93,4 +108,16 @@ public class NetworkViewModel extends ViewModel {
 
     public final LiveData<com.example.goforlunch.model.Place> getPlaceObservable() { return mPlaceObservable; }
     public final LiveData<Bitmap> getPhotoObservable() {return mPhotoObservable; }
+
+    public LiveData<List<Double>> getRatioObservable() {
+        return mRatioObservable;
+    }
+
+    public LiveData<Integer> getTotalUsersObservable() {
+        return mTotalUsersObservable;
+    }
+
+    public LiveData<List<Integer>> getNumberOfLuncherObservable() {
+        return mNumberOfLuncherObservable;
+    }
 }

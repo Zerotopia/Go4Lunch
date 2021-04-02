@@ -30,6 +30,8 @@ public class Place {
     @SerializedName("opening_hours")
     private OpenHours mOpen;
 
+    //private int mRatioLike;
+
     public Place(String id, String name, String address) {
         mId = id;
         mName = name;
@@ -65,4 +67,12 @@ public class Place {
     public OpenHours getOpen() {
         return mOpen;
     }
+
+//    public int getRatioLike() {
+//        return mRatioLike;
+//    }
+//
+//    public void setRatioLike(int ratioLike) {
+//        mRatioLike = ratioLike;
+//    }
 }
