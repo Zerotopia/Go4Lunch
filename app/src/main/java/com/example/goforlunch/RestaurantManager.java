@@ -49,6 +49,10 @@ public class RestaurantManager {
     public static Task<Void> updateRestaurantLunchers(int numberOfLuncher, String uid) {
         return getRestaurantsCollection().document(uid).update("NumberOfLunchers", numberOfLuncher);
     }
+
+    public static Task<Void> updateRestaurantRatio(int ratio, String uid) {
+        return getRestaurantsCollection().document(uid).update("Ratio",ratio);
+    }
     // --- DELETE ---
 
     public static Task<Void> deleteRestaurant(String uid) {

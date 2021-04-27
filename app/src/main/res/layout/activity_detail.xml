@@ -33,19 +33,44 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/colorPrimary"
+            >
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="5dp">
             <TextView
                 android:id="@+id/detail_restaurant_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{detailViewModel.placeObservable.name}"/>
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:text="@{detailViewModel.placeObservable.name}"
+                android:layout_marginBottom="3dp"
+                android:layout_marginEnd="5sp"
+                android:layout_marginStart="5dp"/>
+
+                <RatingBar
+                    android:id="@+id/ratio"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/detail_restaurant_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{detailViewModel.placeObservable.address}"/>
+                android:textColor="@android:color/white"
+                android:text="@{detailViewModel.placeObservable.address}"
+                android:layout_marginBottom="5dp"
+                android:layout_marginStart="5dp"/>
         </LinearLayout>
 
 
@@ -54,7 +79,8 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+        android:layout_marginTop="5dp">
 
             <Button
                 android:id="@+id/detail_call_button"
@@ -62,6 +88,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_baseline_call_24"
+                android:background="@android:color/white"
                 android:text="CALL"
                 android:onClick="@{() -> detailActivity.callOnClickListener()}"/>
 
@@ -70,6 +97,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:background="@android:color/white"
                 android:text="LIKE"
                 android:onClick="@{() -> detailActivity.likeOnClickListener()}"/>
 <!--                android:drawableTop="@drawable/ic_baseline_star_24"-->
@@ -81,6 +109,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_baseline_public_24"
+                android:background="@android:color/white"
                 android:text="Website"
                 android:onClick="@{() -> detailActivity.webOnClickListener()}"/>
         </LinearLayout>
@@ -100,8 +129,9 @@
         android:layout_marginEnd="20dp"
         app:layout_anchor="@+id/detail_imageview"
         app:layout_anchorGravity="bottom|right|end"
+        android:backgroundTint="@android:color/white"
         android:onClick="@{() -> detailActivity.addOnclicklistener()}"
-        android:src="@{detailViewModel.isLunch ? @drawable/ic_baseline_check_24 : @drawable/ic_baseline_add_circle_24}"/>
+        android:src="@{detailViewModel.isLunch ? @drawable/ic_baseline_check_circle_24 : @drawable/ic_baseline_add_circle_24}"/>
 <!--    android:src="@drawable/ic_baseline_check_24"-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

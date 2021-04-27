@@ -33,7 +33,7 @@ import java.util.List;
 
 public class RecyclerFragment extends Fragment {
 
-    public static final String TAG = "TAG";
+    public static final String TAG = "RECYCLERFRAGMENTTAG";
     private static final String LIST_VIEW = "LISTVIEW";
     private TextView mTextView;
     private RecyclerView mRecyclerView;
@@ -55,6 +55,7 @@ public class RecyclerFragment extends Fragment {
 
     @NonNull
     public static RecyclerFragment newInstance(boolean listView) {
+        Log.d(TAG, "newInstance: Creation Instance");
         RecyclerFragment recyclerFragment = new RecyclerFragment();
         Bundle arg = new Bundle();
         arg.putBoolean(LIST_VIEW, listView);
@@ -65,110 +66,89 @@ public class RecyclerFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mNetworkViewModel = //((MapActivity) getActivity()).getNetworkViewModel();
-                ViewModelProviders.of(requireActivity(), Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
-        Log.d(TAG, "onActivityCreated: mapfragment viewModel");
-        //networkViewModel.init(mCurrentId);
-        Log.d(TAG, "onActivityCreated: mapfragment init");
-        observeViewModel(mNetworkViewModel);
-        Log.d(TAG, "onActivityCreated: mapfragment observe");
-    }
-
-    //@Override
-    public void observeViewModel(NetworkViewModel networkViewModel) {
-        Log.d(TAG, "observeViewModel: mapfragment in observe");
-      //  networkViewModel.getTotalUsersObservable().observe(this, this::updateTotalusers);
-        networkViewModel.getNetworkObservable().observe(this, this::updateNearByPlace);
-        Log.d(TAG, "observeViewModel: mapgrgment fin observe");
-        networkViewModel.getWorkersObservable().observe(this, this::updateWorkers);
-
-    }
-
-//    private void updateTotalusers(Integer integer) {
-//        mNetworkViewModel.getRatioObservable().observe(this, this::updateRatioList);
-//
-//    }
-
-    private void updateRatioList(List<Double> ratios) {
-        Log.d(TAG, "updateRatioList: 1111111111111111111111111111111111");
-        mRatioLike = ratios;
-        mRatioOk = true;
-        setRecyclerView();
-
-    }
-
-    private void setRecyclerView() {
-        if (mRatioOk && mLuncherOk) {
-            mRatioOk = false;
-            mLuncherOk = false;
-            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-            mRecyclerView.setLayoutManager(layoutManager);
-            mRecyclerView.setAdapter(new RestaurantAdapter(mNearByPlace.getResults(), mRatioLike, mNumberOfLunchers));
-        }
-    }
-
-    private void updateWorkers(List<User> users) {
-        mUsers = users;
-        if (!mList) {
-            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-            mRecyclerView.setLayoutManager(layoutManager);
-            mWorkerAdapter = new WorkerAdapter(mUsers, false);
-            mRecyclerView.setAdapter(mWorkerAdapter);
-        }
-    }
-
-    private void updateNearByPlace(NearByPlace nearByPlace) {
-        Log.d(TAG, "updnAAAAAAAAAt");
-        if ((nearByPlace.getResults() != null) && (mList)) {
-            mNearByPlace = nearByPlace;
-            Log.d(TAG, "updateNearByPlace: sssssiiiiizzzzee :::  " + nearByPlace.getResults().size());
-            Log.d(TAG, "updateNearByPlace: siiiiizzeesizzze ::  " + mNearByPlace.getResults().size());
-            mNetworkViewModel.newPlaces(mNearByPlace);
-            mNetworkViewModel.getRatioObservable().observe(this, this::updateRatioList);
-
-            mNetworkViewModel.getNumberOfLuncherObservable().observe(this, this::updateNumberOfLuncher);
-//            Log.d(TAG, "updateNearByPlace: cool mapfragment  :: " + nearByPlace.getResults().size());
-//            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-//            mRecyclerView.setLayoutManager(layoutManager);
-//            Log.d(TAG, "updateNearByPlace:  2222222222222222222222222222222222222");
-//            mRecyclerView.setAdapter(new RestaurantAdapter(nearByPlace.getResults(), mRatioLike));
-        } else Log.d(TAG, "updateNearByPlace: Hmmmm mapfragment");
-    }
-
-    private void updateNumberOfLuncher(List<Integer> integers) {
-        mNumberOfLunchers = integers;
-        mLuncherOk = true;
-        setRecyclerView();
+        Log.d(TAG, "onActivityCreated: setviewmodel creation de l'activité");
+        setViewModel();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: setOptionMenu");
         setHasOptionsMenu(true);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_recycler, container, false);
-        // View listView = inflater.inflate(R.layout.fragment_recycler, container, false);
+        Log.d(TAG, "onCreateView: creation de la vue");
+        bindingView(inflater, container);
+        Log.d(TAG, "onCreateView: binding stuff");
         View listView = mBinding.getRoot();
-
-        mRecyclerView = mBinding.fragmentRecyclerview;
-        mList = (getArguments() == null) || getArguments().getBoolean(LIST_VIEW, true);
-        Log.d("TAG", "onCreateView: ici");
-
-        if (!mList)
-            mRecyclerView.addItemDecoration(new CustomItemDecoration(listView.getContext()));
-
-        // Initialize Places.
-        if ((getActivity() != null) && (!Places.isInitialized())) {
-            Places.initialize(getActivity().getApplicationContext(), String.valueOf(R.string.google_api_key));
-            Log.d("TAG", "onCreateView: initiliaze");
-        }
+        Log.d(TAG, "onCreateView: initlistboolean");
+        initListBoolean();
+        Log.d(TAG, "onCreateView: initPlace");
+        initPlaces();
+        Log.d(TAG, "onCreateView: exit oncreated");
         return listView;
     }
 
+    /**
+     * VIEWMODEL OBSERVERS
+     */
+    public void observeViewModel(NetworkViewModel networkViewModel) {
+        Log.d(TAG, "observeViewModel: observe");
+        Log.d(TAG, "observeViewModel: observe nearbyplace");
+        networkViewModel.getNetworkObservable().observe(getViewLifecycleOwner(), this::updateNearByPlace);
+        Log.d(TAG, "observeViewModel: observe workers");
+        networkViewModel.getWorkersObservable().observe(getViewLifecycleOwner(), this::updateWorkers);
+        Log.d(TAG, "observeViewModel: exit observe");
+    }
+
+    private void updateNearByPlace(NearByPlace nearByPlace) {
+        Log.d(TAG, "updateNearByPlace: updatenearbyplace");
+        if ((nearByPlace.getResults() != null) && (mList)) {
+            mNearByPlace = nearByPlace;
+            mNetworkViewModel.newPlaces(mNearByPlace);
+            Log.d(TAG, "updateNearByPlace: observeratiolist");
+            mNetworkViewModel.getRatioObservable().observe(getViewLifecycleOwner(), this::updateRatioList);
+            Log.d(TAG, "updateNearByPlace: observe NumberofLuncher");
+            mNetworkViewModel.getNumberOfLuncherObservable().observe(getViewLifecycleOwner(), this::updateNumberOfLuncher);
+        }
+        Log.d(TAG, "updateNearByPlace: exit updatenearbyplace");
+    }
+
+    private void updateWorkers(List<User> users) {
+        Log.d(TAG, "updateWorkers: updateworker");
+        mUsers = users;
+        if (!mList) {
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+            mWorkerAdapter = new WorkerAdapter(mUsers, false);
+            mRecyclerView.addItemDecoration(new CustomItemDecoration(requireContext()));
+            mRecyclerView.setAdapter(mWorkerAdapter);
+        }
+        Log.d(TAG, "updateWorkers: exit updateworker");
+    }
+
+    private void updateRatioList(List<Double> ratios) {
+        Log.d(TAG, "updateRatioList: ");
+        mRatioLike = ratios;
+        mRatioOk = true;
+        setRecyclerView();
+        Log.d(TAG, "updateRatioList: exit ratiolist");
+    }
+
+    private void updateNumberOfLuncher(List<Integer> integers) {
+        Log.d(TAG, "updateNumberOfLuncher: ");
+        mNumberOfLunchers = integers;
+        mLuncherOk = true;
+        setRecyclerView();
+        Log.d(TAG, "updateNumberOfLuncher: exit updateNumberofLuncher");
+    }
+/*******************************************************************************/
+    /**
+     * annexe function
+     */
     public void updateList(String newText) {
         List<User> newList = new ArrayList<>();
         if (mUsers != null) {
@@ -178,7 +158,41 @@ public class RecyclerFragment extends Fragment {
                 }
             }
             mWorkerAdapter = new WorkerAdapter(newList, false);
+            mRecyclerView.addItemDecoration(new CustomItemDecoration(requireContext()));
             mRecyclerView.setAdapter(mWorkerAdapter);
+        }
+    }
+
+    private void setViewModel() {
+        mNetworkViewModel =
+                ViewModelProviders.of(requireActivity(), Injection.provideNetworkViewModelFactory(getContext())).get(NetworkViewModel.class);
+        observeViewModel(mNetworkViewModel);
+    }
+
+    private void setRecyclerView() {
+       // if (!mList)
+
+        if (mRatioOk && mLuncherOk) {
+            mRatioOk = false;
+            mLuncherOk = false;
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+            mRecyclerView.setAdapter(new RestaurantAdapter(mNearByPlace.getResults(), mRatioLike, mNumberOfLunchers));
+        }
+    }
+
+    private void bindingView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_recycler, container, false);
+        mRecyclerView = mBinding.fragmentRecyclerview;
+    }
+
+    private void initListBoolean() {
+        mList = (getArguments() == null) || getArguments().getBoolean(LIST_VIEW, true);
+    }
+
+    private void initPlaces() {
+        if ((getActivity() != null) && (!Places.isInitialized())) {
+            Places.initialize(getActivity().getApplicationContext(), String.valueOf(R.string.google_api_key));
         }
     }
 }

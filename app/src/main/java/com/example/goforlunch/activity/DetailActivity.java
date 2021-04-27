@@ -12,8 +12,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -48,15 +50,13 @@ import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
 
+    private static final String TAG = "DETAILACTIVITYTAG";
     private ImageView mRestaurantPicture;
-    private TextView mRestaurantName;
-    private TextView mRestaurantAddress;
     private RecyclerView mLuncherList;
 
-    private Button mCallButton;
     private Button mLikeButton;
-    private Button mWebsiteButton;
     private FloatingActionButton mFloatingActionButton;
+    private RatingBar mRatingBar;
 
     private String mUrlImage;
     private String mNameRestaurant;
@@ -66,13 +66,10 @@ public class DetailActivity extends AppCompatActivity {
     private List<User> mUsers = new ArrayList<>();
     private List<String> mLikers = new ArrayList<>();
     private String uid;
-    // private PredictionViewModel mPredictionViewModel;
     private DetailViewModel mDetailViewModel;
     private SharedPreferences mPreferences;
     private String mCurrentId;
-    private Bitmap mBitmap;
 
-    //private LikeViewModel mLikeViewModel;
     private ActivityDetailBinding mBinding;
 
     private boolean mLike;
@@ -84,37 +81,162 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_detail);
+        Log.d(TAG, "onCreate: Enter onCreate");
+        bindingView();
+        initCurrentId();
+        setInfoRestaurant();
+        setViewModel();
+        Log.d(TAG, "onCreate: End onCreate");
+    }
 
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
-        mBinding.setDetailActivity(this);
+    /**
+     * VIEW MODEL OBSRVERS
+     */
+    private void observeViewModel() {
+        mDetailViewModel.getPlaceObservable().observe(this, this::updatePlace);
+        mDetailViewModel.getPhotoObservable().observe(this, this::updateImage);
+        mDetailViewModel.getIsLunch().observe(this, this::updateFloatingButton);
+        mDetailViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
+        mDetailViewModel.getIsLike().observe(this, this::updateLikeButton);
+        mDetailViewModel.getCurrentRestaurantId().observe(this, this::updateRestaurant);
+        mDetailViewModel.getRatioRestaurant().observe(this, this::updateRatio);
+    }
 
-        mRestaurantPicture = mBinding.detailImageview;
-        //mRestaurantName = findViewById(R.id.detail_restaurant_name);
-        //mRestaurantAddress = findViewById(R.id.detail_restaurant_address);
-        mLuncherList = mBinding.detailLuncherRecyclerview;
-        // mCallButton = findViewById(R.id.detail_call_button);
-        mLikeButton = mBinding.detailLikeButton;
-        // mWebsiteButton = findViewById(R.id.detail_website_button);
-        mFloatingActionButton = mBinding.floatingButton;
+    private void updateRatio(Integer integer) {
+        if (integer == 0)
+            mRatingBar.setVisibility(View.GONE);
+        else {
+            mRatingBar.setNumStars(integer);
+            mRatingBar.setRating(integer);
+        }
+    }
 
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
-        Log.d("TAG", "onCreate: ID = " + mCurrentId);
+    private void updatePlace(Place place) {
+        mPhoneNumber = place.getPhoneNumber();
+        mWebsiteUri = place.getWebsiteUri();
+        mAddressRestaurant = place.getAddress();
+        mNameRestaurant = place.getName();
+    }
 
-        Intent intent = getIntent();
-        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
-        mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
-        mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
-        mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
-//        mLikers = intent.getStringArrayListExtra(MapActivity.LIST_LIKERS);
-//        if (mLikers == null) {
-//            mLikers = new ArrayList<>();
-//            Log.d("TAG", "onCreate: null");
-//        }
+    private void updateImage(Bitmap bitmap) {
+        mRestaurantPicture.setImageBitmap(bitmap);
+    }
 
-        Log.d("TAG", ": In detailactivity : url :" + mUrlImage + ", namer : " + mNameRestaurant + ", id: " + uid + ", addr: " + mAddressRestaurant);
+    private void updateFloatingButton(Boolean isLunch) {
+        mLunch = isLunch;
+    }
 
+    private void setLuncherAdapter(List<User> users) {
+        mUsers = users;
+        mLuncherList.setLayoutManager(new LinearLayoutManager(this));
+        mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+    }
+
+    private void updateLikeButton(Boolean isLike) {
+        Drawable drawableTop;
+        if (isLike)
+            drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_24, null);
+        else
+            drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_grey_24, null);
+        mLike = isLike;
+        mLikeButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawableTop, null, null);
+    }
+
+    private void updateRestaurant(String currentRestaurantId) {
+        if ((currentRestaurantId != null) && !currentRestaurantId.isEmpty())
+            RestaurantManager.getRestaurant(currentRestaurantId).addOnSuccessListener(documentSnapshot -> {
+                mCurrentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                mCurrentRestaurant.setId(documentSnapshot.getId());
+            });
+    }
+
+/********************************************************************************/
+    /**
+     * CLICKLISTENER
+     */
+    public void addOnclicklistener() {
+        Log.d("TAG", "addOnclicklistener: ");
+        createRestaurant();
+        if ((mCurrentRestaurant != null) && !mCurrentRestaurant.getId().isEmpty())
+            RestaurantManager.updateRestaurantLunchers(mCurrentRestaurant.getNumberOfLunchers() - 1, mCurrentRestaurant.getId());
+        setAlarmManager();
+        mDetailViewModel.changeUserRestaurant();
+    }
+
+    public void webOnClickListener() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, mWebsiteUri);
+        startActivity(intent);
+
+    }
+
+    public void likeOnClickListener() {
+        createRestaurant();
+        if (mLike) mLikers.remove(mCurrentId);
+        else mLikers.add(mCurrentId);
+        RestaurantManager.updateRestaurantLikers(mLikers, uid);
+        mDetailViewModel.changeLike();
+    }
+
+    public void callOnClickListener() {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + mPhoneNumber));
+        startActivity(intent);
+
+    }
+/*************************************************************************************/
+    /**
+     * annexe function
+     */
+    private void setAlarmManager() {
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("notificationId", 42);
+        intent.putExtra("restaurantName", mNameRestaurant);
+        intent.putExtra("address", mAddressRestaurant);
+        intent.putExtra("userId", mCurrentId);
+        intent.putExtra("restaurantId", uid);
+
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (mLunch) {
+            UserManager.updateUserRestaurant("", mCurrentId, "");
+            alarmManager.cancel(alarmIntent);
+        } else {
+            UserManager.updateUserRestaurant(uid, mCurrentId, mNameRestaurant);
+            RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
+                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                RestaurantManager.updateRestaurantLunchers(currentRestaurant.getNumberOfLunchers() + 1, uid);
+            });
+            mDetailViewModel.updateCurrentRestaurant();
+
+            Calendar currentTime = Calendar.getInstance();
+            currentTime.set(Calendar.HOUR_OF_DAY, 12);
+            currentTime.set(Calendar.MINUTE, 0);
+            currentTime.set(Calendar.SECOND, 0);
+            long notificationTime = currentTime.getTimeInMillis();
+
+            alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, alarmIntent);
+        }
+    }
+
+    private void createRestaurant() {
+        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
+            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+            if (currentRestaurant == null) {
+                RestaurantManager.createRestaurant(uid);
+                RestaurantManager.updateRestaurantName(mNameRestaurant, uid);
+                RestaurantManager.updateRestaurantLunchers(0, uid);
+            }
+
+        });
+    }
+
+
+    private void setViewModel() {
         mDetailViewModel =
                 ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
         mDetailViewModel.init(uid, mCurrentId);
@@ -123,6 +245,14 @@ public class DetailActivity extends AppCompatActivity {
 
         mBinding.setDetailViewModel(mDetailViewModel);
         mBinding.setLifecycleOwner(this);
+    }
+
+    private void setInfoRestaurant() {
+        Intent intent = getIntent();
+        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
+        mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
+        mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
+        mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
 
         RequestOptions options = new RequestOptions()
                 .centerCrop()
@@ -136,184 +266,27 @@ public class DetailActivity extends AppCompatActivity {
                 //  .apply
                 .into(mRestaurantPicture);
 
-        // mRestaurantName.setText(mNameRestaurant);
-        // mRestaurantAddress.setText(mAddressRestaurant);
-
-//        mCallButton.setOnClickListener(view -> {
-//            callOnClickListener();
-//        });
-//
-//        mLikeButton.setOnClickListener(view -> {
-//            likeOnClickListener();
-//        });
-//
-//        mWebsiteButton.setOnClickListener(view -> {
-//            webOnClickListener();
-//        });
-//
-//        mFloatingActionButton.setOnClickListener(view -> {
-//            addOnclicklistener();
-//        });
-
     }
 
-    private void setLuncherAdapter(List<User> users) {
-        mUsers = users;
-        mLuncherList.setLayoutManager(new LinearLayoutManager(this));
-        mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+    private void initCurrentId() {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
     }
 
-    private void updateFloatingButton(Boolean isLunch) {
-        mLunch = isLunch;
+    private void bindingView() {
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+        mBinding.setDetailActivity(this);
 
-//        if (isLunch) {
-//            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_check_24);
-//            mLunch = true;
-//        } else {
-//            mFloatingActionButton.setImageResource(R.drawable.ic_baseline_add_circle_24);
-//            mLunch = false;
-//        }
+        mRestaurantPicture = mBinding.detailImageview;
+        mLuncherList = mBinding.detailLuncherRecyclerview;
+        mLikeButton = mBinding.detailLikeButton;
+        mFloatingActionButton = mBinding.floatingButton;
+        mRatingBar = mBinding.ratio;
     }
 
-    public void addOnclicklistener() {
-        Log.d("TAG", "addOnclicklistener: ");
-        createRestaurant();
-        RestaurantManager.updateRestaurantLunchers(mCurrentRestaurant.getNumberOfLunchers() - 1,mCurrentRestaurant.getId());
-
-
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra("notificationId", 42);
-        intent.putExtra("restaurantName", mNameRestaurant);
-        intent.putExtra("address", mAddressRestaurant);
-        intent.putExtra("userId", mCurrentId);
-        intent.putExtra("restaurantId", uid);
-
-      //  intent.putExtra("lunchers", lunchers);
-
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_CANCEL_CURRENT);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (mLunch) {
-            UserManager.updateUserRestaurant("", mCurrentId, "");
-           //            NotificationManager notificationManager =
-//                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-//            notificationManager.cancel(42);
-            alarmManager.cancel(alarmIntent);
-        } else {
-            UserManager.updateUserRestaurant(uid, mCurrentId, mNameRestaurant);
-            RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-                RestaurantManager.updateRestaurantLunchers(currentRestaurant.getNumberOfLunchers() + 1,uid);
-            });
-            mDetailViewModel.updateCurrentRestaurant();
-
-            Calendar currentTime = Calendar.getInstance();
-            currentTime.set(Calendar.HOUR_OF_DAY, 12);
-            currentTime.set(Calendar.MINUTE, 0);
-            currentTime.set(Calendar.SECOND, 0);
-            long notificationTime = currentTime.getTimeInMillis();
-
-            alarmManager.set(AlarmManager.RTC_WAKEUP,notificationTime,alarmIntent);
-
-
-        }
-       // mDetailViewModel.setIsLunch(mLunch);
-        mDetailViewModel.changeUserRestaurant();
-
-        //  mLikeViewModel.init(uid,mCurrentId);
-
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "onBackPressed: ");
+        super.onBackPressed();
     }
-
-    private void createRestaurant() {
-        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-            if (currentRestaurant == null) {
-                RestaurantManager.createRestaurant(uid);
-                RestaurantManager.updateRestaurantName(mNameRestaurant, uid);
-                RestaurantManager.updateRestaurantLunchers(0,uid);
-            }
-
-        });
-    }
-
-    private void observeViewModel() {
-        mDetailViewModel.getPlaceObservable().observe(this, this::updatePlace);
-        mDetailViewModel.getPhotoObservable().observe(this, this::updateImage);
-        mDetailViewModel.getIsLunch().observe(this, this::updateFloatingButton);
-        mDetailViewModel.getUsersLunch().observe(this, this::setLuncherAdapter);
-        mDetailViewModel.getIsLike().observe(this, this::updateLikeButton);
-        mDetailViewModel.getCurrentRestaurantId().observe(this, this::updateRestaurant);
-    }
-
-    private void updateRestaurant(String currentRestaurantId) {
-        RestaurantManager.getRestaurant(currentRestaurantId).addOnSuccessListener(documentSnapshot -> {
-            mCurrentRestaurant = documentSnapshot.toObject(Restaurant.class);
-            mCurrentRestaurant.setId(documentSnapshot.getId());
-        });
-    }
-
-    private void updateImage(Bitmap bitmap) {
-        mRestaurantPicture.setImageBitmap(bitmap);
-    }
-
-    private void updatePlace(Place place) {
-        mPhoneNumber = place.getPhoneNumber();
-        mWebsiteUri = place.getWebsiteUri();
-        mAddressRestaurant = place.getAddress();
-        mNameRestaurant = place.getName();
-    }
-
-
-    private void updateLikeButton(Boolean isLike) {
-        Drawable drawableTop;
-        if (isLike)
-            drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_24, null);
-        else
-            drawableTop = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_baseline_star_grey_24, null);
-        mLike = isLike;
-        mLikeButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawableTop, null, null);
-    }
-
-//    private void updatePhone(Place place) {
-//        mPhoneNumber = place.getPhoneNumber();
-//        mWebsiteUri = place.getWebsiteUri();
-//    }
-
-    public void webOnClickListener() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, mWebsiteUri);
-        startActivity(intent);
-
-    }
-
-    public void likeOnClickListener() {
-        createRestaurant();
-        if (mLike) mLikers.remove(mCurrentId);
-        else mLikers.add(mCurrentId);
-        RestaurantManager.updateRestaurantLikers(mLikers, uid);
-        // view model
-        mDetailViewModel.changeLike();
-    }
-
-    public void callOnClickListener() {
-        Intent intent = new Intent(Intent.ACTION_DIAL);
-        intent.setData(Uri.parse("tel:" + mPhoneNumber));
-        Log.d("TAG", "callOnClickListener: " + mPhoneNumber);
-
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED)
-//            Log.d("TAG", "onClick: denied");
-//        else {
-//            Log.d("TAG", "onClick: garanted");
-        startActivity(intent);
-        //}
-    }
-
-//    private void changeLikeButtonIcon(boolean like) {
-//        if (like) {
-//
-//        }
-//    }
 }

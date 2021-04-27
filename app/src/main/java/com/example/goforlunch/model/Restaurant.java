@@ -13,6 +13,7 @@ public class Restaurant {
   private String Id;
   private String Name;
   private int NumberOfLunchers;
+  private int Ratio;
 
     public String getId() {
         return Id;
@@ -36,6 +37,14 @@ public class Restaurant {
 
     public void setNumberOfLunchers(int numberOfLunchers) {
         NumberOfLunchers = numberOfLunchers;
+    }
+
+    public int getRatio() {
+        return Ratio;
+    }
+
+    public void setRatio(int ratio) {
+        Ratio = ratio;
     }
 
     public Restaurant() {

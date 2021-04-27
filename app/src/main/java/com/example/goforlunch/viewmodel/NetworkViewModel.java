@@ -28,6 +28,7 @@ public class NetworkViewModel extends ViewModel {
     private LocationBias mBias;
     private int mTotalUsers;
     private LiveData<Integer> mTotalUsersObservable; //
+    private MutableLiveData<Integer> mFragmentIdObservable;
 
 
     public NetworkViewModel(NetworkRepository networkRepository) {
@@ -46,6 +47,16 @@ public class NetworkViewModel extends ViewModel {
         mNetworkObservable = mNetworkRepository.getNearByPlace();
         mRestaurantObservable = mNetworkRepository.getReservedRestaurant();
         mWorkersObservable = mNetworkRepository.getWorkers(userId);
+    }
+
+    public void initFragment(int id) {
+      mFragmentIdObservable = mNetworkRepository.getFragmentId(id);
+    }
+
+
+
+    public void changeFragment(int id) {
+        mFragmentIdObservable.setValue(id);
     }
 
     public LiveData<NearByPlace> getNetworkObservable() {
@@ -95,6 +106,7 @@ public class NetworkViewModel extends ViewModel {
     public void newPos (String placeId) {mPlaceId.setValue(placeId);};
     public void newPlaces (NearByPlace places) {mPlaces.setValue(places);}
 
+
     public final LiveData<List<AutocompletePrediction>> getPredictionObservable() {
         return mPredictionObservable;
     }
@@ -119,5 +131,9 @@ public class NetworkViewModel extends ViewModel {
 
     public LiveData<List<Integer>> getNumberOfLuncherObservable() {
         return mNumberOfLuncherObservable;
+    }
+
+    public final LiveData<Integer> getFragmentIdObservable() {
+        return mFragmentIdObservable;
     }
 }

@@ -25,11 +25,7 @@ import java.util.List;
 public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
 
     private List<User> mUserList;
-
-
-
     private boolean mDetail;
-
 
     public WorkerAdapter(List<User> userList, boolean detail) {
         mUserList = userList;
@@ -41,20 +37,12 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
     public WorkerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         RowWorkerBinding binding = RowWorkerBinding.inflate(inflater,parent,false);
-        //return new WorkerAdapter.WorkerViewHolder(inflater.inflate(R.layout.row_worker, parent, false));
         return new WorkerAdapter.WorkerViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull WorkerViewHolder holder, int position) {
-        Log.d("TAG", "onBindViewHolder: size list : " + mUserList.size());
-        Log.d("TAG", "onBindViewHolder: position : " + position);
         User user = mUserList.get(position);
-//        Log.d("TAG", "onBindViewHolder: user :  " + user.getUserName());
-//        holder.setUser(user,mDetail);
-//        Log.d("TAG", "onBindViewHolder:  setUser done");
-//        holder.setImage(user);
-//        Log.d("TAG", "onBindViewHolder:  setImage done ");
         holder.bindUser(user, mDetail);
     }
 
@@ -65,24 +53,11 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
 
     public static class WorkerViewHolder extends RecyclerView.ViewHolder {
 
-        //private final ImageView profil;
-        //private final TextView choice;
-
         private RowWorkerBinding mBinding;
-
-      //  FirebaseStorage mFirebaseStorage;
-     //   StorageReference mStorageReference;
-      //  String mImagePath = "image_profil/";
 
         public WorkerViewHolder(RowWorkerBinding binding) {
             super(binding.getRoot());
             mBinding = binding;
-          //  super(itemView);
-          //  profil = itemView.findViewById(R.id.profile_imageview);
-           // choice = itemView.findViewById(R.id.choice_textview);
-
-      //      mFirebaseStorage = FirebaseStorage.getInstance();
-       //     mStorageReference = mFirebaseStorage.getReference();
         }
 
         public void bindUser (User user, Boolean detail) {
@@ -90,44 +65,6 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
             mBinding.setList(detail);
             mBinding.executePendingBindings();
         }
-
-//        public void setUser(User user, boolean detail) {
-//            if (detail)
-//                choice.setText(user.getUserName() + " is joining.");
-//            else
-//                choice.setText(user.getUserName() + " lunch in" + user.getRestaurantId());
-//        }
-
-//        public void setImage(User user) {
-//            ////Log.d("TAG", "setImage: " + mImagePath + user.getPhoto());
-//            ///StorageReference imageref = mStorageReference.child(mImagePath + user.getPhoto());
-//            //Log.d("TAG", "setImage: after imgeref before download ");
-//            //imageref.getDownloadUrl().addOnSuccessListener(uri -> {
-//              //  Log.d("TAG", "setImage:  addonsucces");
-//                RequestOptions options = new RequestOptions()
-//                        .centerCrop()
-//                        .placeholder(R.drawable.ic_launcher_background)
-//                        .error(R.drawable.ic_launcher_background)
-//                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                        .priority(Priority.HIGH);
-//                Glide.with(itemView)
-//                        .setDefaultRequestOptions(options)
-//                        .load(user.getPhoto())
-//                        .apply(RequestOptions.circleCropTransform())
-//                        .into(profil);
-//            //}).addOnFailureListener(e -> {
-//            //    Log.d("TAG", "setImage:  fail : " + e.getMessage());
-//           // });
-//            Log.d("TAG", "setImage:  end");
-//        }
-    }
-
-    public boolean isDetail() {
-        return mDetail;
-    }
-
-    public void setDetail(boolean detail) {
-        mDetail = detail;
     }
 }
 

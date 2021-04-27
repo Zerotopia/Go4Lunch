@@ -32,6 +32,8 @@ public class DetailViewModel extends ViewModel {
 
     private MutableLiveData<String> mCurrentRestaurantIdObservable;
 
+    private MutableLiveData<Integer> mRatioObservable;
+
 
     public DetailViewModel(DetailRepository detailRepository) {
         mDetailRepository = detailRepository;
@@ -42,6 +44,7 @@ public class DetailViewModel extends ViewModel {
         mUserRestaurantObservable = mDetailRepository.isLunch(restaurantId,userId);
         mUsersObservable = mDetailRepository.getLunchers(restaurantId,userId);
         mCurrentRestaurantIdObservable = mDetailRepository.getCurrentRestaurantId(userId);
+        mRatioObservable = mDetailRepository.getRatio(restaurantId);
     }
 
     public void setId (String placeId) {mPlaceId.setValue(placeId);}
@@ -66,4 +69,6 @@ public class DetailViewModel extends ViewModel {
     public final LiveData<List<User>> getUsersLunch() { return mUsersObservable; }
 
     public final LiveData<String> getCurrentRestaurantId() {return mCurrentRestaurantIdObservable;}
+
+    public final LiveData<Integer> getRatioRestaurant() {return mRatioObservable; }
 }

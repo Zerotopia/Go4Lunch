@@ -27,6 +27,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
     private List<Double> mRatioLike;
     private List<Integer> mNumberOfLunchers;
 
+    private String TAG = "ADAPTERTAGADAPTERTAGADAPTERTAG";
+
     public RestaurantAdapter(List<Place> places, List<Double> ratioLike, List<Integer> numberOfLunchers) {
         mPlaces = places;
         mRatioLike = ratioLike;
@@ -37,7 +39,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
     @Override
     public RestaurantAdapter.RestaurantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        return new RestaurantAdapter.RestaurantViewHolder(inflater.inflate(R.layout.row_restaurant,parent,false));
+        return new RestaurantAdapter.RestaurantViewHolder(inflater.inflate(R.layout.row_restaurant, parent, false));
     }
 
     @Override
@@ -61,7 +63,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
     public class RestaurantViewHolder extends RecyclerView.ViewHolder {
 
-        //Context context;
         TextView restaurantName;
         TextView restaurantAddress;
         TextView restaurantOpen;
@@ -74,7 +75,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
         public RestaurantViewHolder(@NonNull View itemView) {
             super(itemView);
-          //  context = itemView.getContext();
             restaurantName = itemView.findViewById(R.id.restaurant_name);
             restaurantAddress = itemView.findViewById(R.id.restaurant_address);
             restaurantOpen = itemView.findViewById(R.id.restaurant_open_hours);
@@ -82,53 +82,34 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             ratio = itemView.findViewById(R.id.ratio);
             restaurantPicture = itemView.findViewById(R.id.restaurant_picture);
             itemView.setOnClickListener(view -> {
-               // final List<String> likers = new ArrayList<>();
-//                Intent intent = new Intent(itemView.getContext(), DetailActivity.class);
-//
-//                RestaurantManager.getRestaurant(place.getId()).addOnSuccessListener(documentSnapshot -> {
-//                   Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-//                   if (currentRestaurant == null) {
-//                       RestaurantManager.createRestaurant(place.getId());
-//                       RestaurantManager.updateRestaurantName(place.getName(),place.getId());
-//                       intent.putExtra(MapActivity.LIST_LIKERS,new ArrayList<String>());
-//                   } else {
-//                       intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) currentRestaurant.getLikers());
-//                   }
-//                });
-//
-//
-//                intent.putExtra(MapActivity.URL_IMAGE,urlPhoto());
-//                intent.putExtra(MapActivity.NAME_RESTAURANT,place.getName());
-//                intent.putExtra(MapActivity.UID_RESTAURANT,place.getId());
-//                intent.putExtra(MapActivity.ADDR_RESTAURANT,place.getAddress());
-//                Log.d("TAG", "onrestaurantclick: before detailactivity : url :" + urlPhoto() + ", namer : " + place.getName() + ", id: " + place.getId() + ", addr: " + place.getAddress());
-//                itemView.getContext().startActivity(intent);
                 ((ListItemClickListener) itemView.getContext()).itemClick(place.getId());
-           });
+            });
         }
 
-        private String urlPhoto(){
+        private String urlPhoto() {
             return place.getPhotos().get(0).getPhotoRef() + itemView.getContext().getString(R.string.google_maps_key);
         }
 
-        public void setRestaurantInfo () {
+        public void setRestaurantInfo() {
             restaurantName.setText(place.getName());
-            restaurantAddress.setText(place.getAddress());
+            restaurantAddress.setText(place.getAddress().split(",")[0]);
             if (place.getOpen() != null) {
-             if (place.getOpen().isOp())
-                restaurantOpen.setText("Open Now");
-            else restaurantOpen.setText("Close");
+                if (place.getOpen().isOp())
+                    restaurantOpen.setText("Open Now");
+                else restaurantOpen.setText("Close");
             }
         }
 
-        public void setLuncherInfo () {
-            numberLuncher.setText(numberOfluncher.toString());
-//            Log.d("TAG", "setLuncherInfo:  ratioPlace :: " + ratioPlace);
-//            Log.d("TAG", "setLuncherInfo:  ratio ::::::: " + place.getRatio());
-//            Log.d("TAG", "setLuncherInfo:  result :::::: " + computeRatio(ratioPlace,place.getRatio()));
-            //Integer s = computeRatio(ratioPlace,place.getRatio());
-            ratio.setNumStars(computeRatio(ratioPlace, place.getRatio()));
-            ratio.setRating(computeRatio(ratioPlace, place.getRatio()));
+        public void setLuncherInfo() {
+            numberLuncher.setText("(" + numberOfluncher.toString() + ")");
+            int rate = computeRatio(ratioPlace, place.getRatio());
+            Log.d(TAG, "setLuncherInfo: rate = " + rate);
+            if (rate == 0)
+                ratio.setVisibility(View.GONE);
+            else {
+                ratio.setNumStars(rate);
+                ratio.setRating(rate);
+            }
         }
 
         private Integer computeRatio(double ratioPlace, Double ratio) {
@@ -139,7 +120,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             return 3;
         }
 
-        public void setRestaurantPicture () {
+        public void setRestaurantPicture() {
             RequestOptions options = new RequestOptions()
                     .centerCrop()
                     .placeholder(R.drawable.ic_launcher_background)
@@ -148,10 +129,10 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
                     .priority(Priority.HIGH);
             if (place.getPhotos() != null) {
                 if ((place.getPhotos().get(0).getPhotoRef() != null))
-                Glide.with(itemView)
-                        .setDefaultRequestOptions(options)
-                        .load(urlPhoto())
-                        .into(restaurantPicture);
+                    Glide.with(itemView)
+                            .setDefaultRequestOptions(options)
+                            .load(urlPhoto())
+                            .into(restaurantPicture);
             }
         }
     }

@@ -278,13 +278,23 @@ public class NetworkRepository {
 //        });
         RestaurantManager.getAllRestaurant().addOnSuccessListener(queryDocumentSnapshots -> {
             List<Restaurant> restaurants = queryDocumentSnapshots.toObjects(Restaurant.class);
-            for (com.example.goforlunch.model.Place place : nearByPlace.getResults())
-                dataList.add((double) ((ratioRestaurant(place.getId(), restaurants)) / totalUsers));
+            for (com.example.goforlunch.model.Place place : nearByPlace.getResults()) {
+                double ratioLike = (double) ((ratioRestaurant(place.getId(), restaurants)) / totalUsers);
+                dataList.add(ratioLike);
+                RestaurantManager.updateRestaurantRatio(computeRatio(ratioLike,place.getRatio()),place.getId());
+            }
             data.setValue(dataList);
         });
         return data;
     }
 
+    private Integer computeRatio(double ratioPlace, Double ratio) {
+        double result = 3 * (0.7 * ratioPlace + 0.3 * (ratio / 5.0));
+        if (result <= 0.5) return 0;
+        if (result <= 1.5) return 1;
+        if (result <= 2.5) return 2;
+        return 3;
+    }
 //        Log.d("TAG", "getRatio: REPOSITORY ::: nerabyplace : " + nearByPlace.getResults().size());
 //
 //        //for (com.example.goforlunch.model.Place place : nearByPlace.getResults()) {
@@ -347,6 +357,12 @@ public class NetworkRepository {
         UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
             data.setValue(queryDocumentSnapshots.size());
         });
+        return data;
+    }
+
+    public MutableLiveData<Integer>getFragmentId(int id) {
+        MutableLiveData<Integer> data = new MutableLiveData<>();
+        data.setValue(id);
         return data;
     }
 }
