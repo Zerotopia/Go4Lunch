@@ -75,7 +75,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     @Override
     public void onResume() {
         super.onResume();
-        observeViewModel(mNetworkViewModel);
+        initMapFragment();
+       // mNetworkViewModel.initReservedRestaurant();
     }
 
     @Nullable
@@ -117,6 +118,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mNetworkViewModel.initReservedRestaurant();
         if (mNearByPlace != null) {
             for (Place p : mNearByPlace.getResults()) {
                 mMap.addMarker(setMarkerOptions(p)).setTag(p.getId());
@@ -203,6 +205,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private void initMapFragment() {
         mMapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_fragment);
+
         if (mMapFragment != null)
             mMapFragment.getMapAsync(this);
     }

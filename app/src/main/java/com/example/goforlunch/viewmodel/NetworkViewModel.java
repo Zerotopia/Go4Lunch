@@ -45,8 +45,11 @@ public class NetworkViewModel extends ViewModel {
         mTotalUsers = totalUsers;
         if (mNetworkObservable != null) return;
         mNetworkObservable = mNetworkRepository.getNearByPlace();
-        mRestaurantObservable = mNetworkRepository.getReservedRestaurant();
         mWorkersObservable = mNetworkRepository.getWorkers(userId);
+    }
+
+    public void initReservedRestaurant() {
+        mRestaurantObservable = mNetworkRepository.getReservedRestaurant();
     }
 
     public void initFragment(int id) {

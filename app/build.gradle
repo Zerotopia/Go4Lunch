@@ -12,7 +12,7 @@ android {
         release {
             keyAlias 'key1'
             keyPassword 'projet6Lunch'
-            storeFile file('/home/ecureuil/.android/debug.keystore')
+            storeFile file('debug.keystore')
             storePassword 'android'
         }
     }

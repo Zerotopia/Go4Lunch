@@ -134,6 +134,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private void updateTotalUsers(Integer totalUsers) {
         Log.d(TAG, "updateTotalUsers: utilistion mBias");
         mNetworkViewModel.init(mCurrentId, mBias, totalUsers);
+        mNetworkViewModel.initReservedRestaurant();
         observeViewModel();
     }
 
