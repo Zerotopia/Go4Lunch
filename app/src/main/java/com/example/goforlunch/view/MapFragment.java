@@ -39,6 +39,7 @@ import com.google.android.libraries.places.api.model.LocationBias;
 import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener
+    , MapActivity.InterfaceListener
         //      , FragmentViewModelListener
 {
     public static final String TAG = "TAG";
@@ -69,6 +70,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setViewModel();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        observeViewModel(mNetworkViewModel);
     }
 
     @Nullable
@@ -140,7 +147,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
      * annexe functions
      */
 
-    public void updateUI(LatLng latLng, String placeId) {
+    public void updateUIAutocomplete(LatLng latLng, String placeId) {
         if (mMap != null) {
             mMap.clear();
             mMap.addMarker(new MarkerOptions()
@@ -200,6 +207,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             mMapFragment.getMapAsync(this);
     }
 
+
+    @Override
+    public void updateUI(NearByPlace nearbyPlace, List<String> reservedRestaurant) {
+
+    }
 }
 
 

@@ -89,7 +89,7 @@
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_baseline_call_24"
                 android:background="@android:color/white"
-                android:text="CALL"
+                android:text="@string/call"
                 android:onClick="@{() -> detailActivity.callOnClickListener()}"/>
 
             <Button
@@ -98,7 +98,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/white"
-                android:text="LIKE"
+                android:text="@string/like"
                 android:onClick="@{() -> detailActivity.likeOnClickListener()}"/>
 <!--                android:drawableTop="@drawable/ic_baseline_star_24"-->
 
@@ -110,7 +110,7 @@
                 android:layout_weight="1"
                 android:drawableTop="@drawable/ic_baseline_public_24"
                 android:background="@android:color/white"
-                android:text="Website"
+                android:text="@string/website"
                 android:onClick="@{() -> detailActivity.webOnClickListener()}"/>
         </LinearLayout>
 

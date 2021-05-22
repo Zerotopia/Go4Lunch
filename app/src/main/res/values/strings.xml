@@ -10,7 +10,22 @@
     <string name="facebook_login_protocol_scheme" translatable="false"
         tools:ignore="UnusedResources">fb206797474097291</string>
     <string name="google_maps_key">AIzaSyBmCJMG_N3OzEfA9tE2jlKp2NRmKtwpT-8</string>
-<!--     AIzaSyDTsp6M3ByyI2dQksEgqzn03HoPGqatzL4-->
+
+    <string name="like">LIKE</string>
+    <string name="website">WEBSITE</string>
+    <string name="place_name_tool">Place Name</string>
+    <string name="address_tool">123 Main Street, San Francisco, CA USA</string>
+    <string name="search_hint">Search</string>
+    <string name="open_now">Open Now</string>
+    <string name="close">Close</string>
+    <string name="notification_message">Today you lucnh with %1$s in the restaurant %2$s where is in %3$s. Have a good lunch !</string>
+    <string name="notification_title">Go for lunch !!</string>
+    <string name="is_joining">%1$s is joining</string>
+    <string name="lunch_in">%1$s lunch in %2$s</string>
+    <string name="call">CALL</string>
+    <string name="permission_message">This application need your location to found some restaurants around you.</string>
+    <string name="not_yet">%1$s hasn\'t decided yet.</string>
+    <!--     AIzaSyDTsp6M3ByyI2dQksEgqzn03HoPGqatzL4-->
 
 
 </resources>

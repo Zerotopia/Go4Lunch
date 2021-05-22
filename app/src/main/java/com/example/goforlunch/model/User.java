@@ -1,5 +1,6 @@
 package com.example.goforlunch.model;
 
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.databinding.BindingAdapter;
@@ -31,6 +32,9 @@ public class User {
 
     private String RestaurantName;
 
+    private String firstName;
+    private String lastName;
+
 
     public User() {
     }
@@ -39,6 +43,9 @@ public class User {
         UserName = userName;
         Email = email;
         Photo = photo;
+        firstName = UserName.split(" ")[0];
+        lastName = UserName.split(" ")[1];
+        Log.d("USERTAAAAAAAAGGGGGGGG", "User: firstnam ::: " + firstName + " lastName :: " + lastName);
     }
 
     public String getUserName() {
@@ -123,5 +130,19 @@ public class User {
                 .load(urlImage)
                 .apply(RequestOptions.circleCropTransform())
                 .into(imageView);
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void initName() {
+        firstName = UserName.split(" ")[0];
+        lastName = UserName.split(" ")[1];
+
     }
 }

@@ -98,6 +98,7 @@ public class NetworkRepository {
             for (DocumentSnapshot document : documentSnapshots.getDocuments()) {
                 if (!document.getId().equals(userId)) {
                     User user = document.toObject(User.class);
+                    user.initName();
                     users.add(user);
                 }
             }

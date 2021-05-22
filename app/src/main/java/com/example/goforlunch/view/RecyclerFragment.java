@@ -19,9 +19,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.goforlunch.R;
 import com.example.goforlunch.WorkerAdapter;
+import com.example.goforlunch.activity.MapActivity;
 import com.example.goforlunch.databinding.FragmentRecyclerBinding;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
+import com.example.goforlunch.model.Place;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
 import com.google.android.libraries.places.api.Places;
@@ -31,7 +33,7 @@ import java.util.List;
 
 //import static com.example.goforlunch.view.PredictionAdapter.TAG;
 
-public class RecyclerFragment extends Fragment {
+public class RecyclerFragment extends Fragment implements MapActivity.InterfaceListener {
 
     public static final String TAG = "RECYCLERFRAGMENTTAG";
     private static final String LIST_VIEW = "LISTVIEW";
@@ -153,7 +155,7 @@ public class RecyclerFragment extends Fragment {
         List<User> newList = new ArrayList<>();
         if (mUsers != null) {
             for (User user : mUsers) {
-                if ((user.getUserName().startsWith(newText))) {// || (user.getLastName().startsWith(newText))) {
+                if ((user.getUserName().startsWith(newText)) || (user.getLastName().startsWith(newText)) || (user.getFirstName().startsWith(newText))) {// || (user.getLastName().startsWith(newText))) {
                     newList.add(user);
                 }
             }
@@ -194,5 +196,11 @@ public class RecyclerFragment extends Fragment {
         if ((getActivity() != null) && (!Places.isInitialized())) {
             Places.initialize(getActivity().getApplicationContext(), String.valueOf(R.string.google_api_key));
         }
+    }
+
+
+    @Override
+    public void updateUI(NearByPlace nearbyPlace, List<String> reservedRestaurant) {
+
     }
 }

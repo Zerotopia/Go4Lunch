@@ -20,6 +20,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
@@ -28,7 +31,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
     private boolean mDetail;
 
     public WorkerAdapter(List<User> userList, boolean detail) {
-        mUserList = userList;
+        mUserList = decidedFistList(userList);
         mDetail = detail;
     }
 
@@ -44,6 +47,24 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
     public void onBindViewHolder(@NonNull WorkerViewHolder holder, int position) {
         User user = mUserList.get(position);
         holder.bindUser(user, mDetail);
+    }
+
+    private List<User> decidedFistList (List<User> users) {
+        List<User> decidedList = new ArrayList<>();
+        List<User> undecidedList = new ArrayList<>();
+
+        for (User user : users) {
+            if (user.getRestaurantId() == null)
+                undecidedList.add(user);
+            else
+                decidedList.add(user);
+        }
+
+        Collections.sort(decidedList, ((user, t1) -> user.getLastName().compareTo(t1.getLastName())));
+        Collections.sort(undecidedList, ((user, t1) -> user.getLastName().compareTo(t1.getLastName())));
+        decidedList.addAll(undecidedList);
+
+        return decidedList;
     }
 
     @Override

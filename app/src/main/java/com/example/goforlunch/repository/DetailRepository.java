@@ -232,7 +232,7 @@ public class DetailRepository {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
             User user = documentSnapshot.toObject(User.class);
-            data.setValue((user != null) && user.getRestaurantId().equals(restaurantId));
+            data.setValue((user != null) && (user.getRestaurantId() != null) && user.getRestaurantId().equals(restaurantId));
         });
         return data;
     }
@@ -242,8 +242,11 @@ public class DetailRepository {
         UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
             List<User> users = new ArrayList<>();
             for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
-                if (!documentSnapshot.getId().equals(userId))
-                    users.add(documentSnapshot.toObject(User.class));
+                if (!documentSnapshot.getId().equals(userId)) {
+                    User user = documentSnapshot.toObject(User.class);
+                    user.initName();
+                    users.add(user);
+                }
             data.setValue(users);
         });
         return data;

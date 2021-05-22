@@ -1,6 +1,5 @@
 package com.example.goforlunch.activity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,6 +29,8 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.goforlunch.ListItemClickListener;
 import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
+import com.example.goforlunch.model.NearByPlace;
+import com.example.goforlunch.model.Place;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
@@ -43,8 +44,6 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import pub.devrel.easypermissions.EasyPermissions;
 
 public class MapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
         //  RecyclerFragment.AdapterListener,
@@ -141,7 +140,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private void observeViewModel() {
         mNetworkViewModel.getPredictionObservable().observe(this, this::updateResults);
         mNetworkViewModel.getmLikersObservable().observe(this, this::updateLikers);
-//        mNetworkViewModel.getLocationObservable().observe(this, this::updateLocation);
+        mNetworkViewModel.getLocationObservable().observe(this, this::updateLocation);
         mNetworkViewModel.getFragmentIdObservable().observe(this, this::updateFragment);
         //mNetworkViewModel.getRatioObservable().observe(this, this::updateRatioList);
     }
@@ -175,7 +174,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
     private void updateLocation(LatLng latLng) {
-        if (mSelectedFragment == MAP_FRAGMENT) mMapFragment.updateUI(latLng, mPlaceId);
+        if (mSelectedFragment == MAP_FRAGMENT) mMapFragment.updateUIAutocomplete(latLng, mPlaceId);
     }
 
 
@@ -328,11 +327,11 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+//    }
 
     /***************************************************************/
     /**
@@ -354,15 +353,15 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     @SuppressLint("MissingPermission")
     private void setLocationManager() {
-        String[] perms = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-        if (EasyPermissions.hasPermissions(this, perms)) {
-            // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+//        String[] perms = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+//        if (EasyPermissions.hasPermissions(this, perms)) {
+//            // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 
-        } else {
-            EasyPermissions.requestPermissions(this, "Need Location", 123, perms);
-        }
+//        } else {
+//            EasyPermissions.requestPermissions(this, "Need Location", 123, perms);
+//        }
     }
 
     private void setViewModel() {
@@ -379,7 +378,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 
     public void initSearchView(SearchView searchView) {
         mSearchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(androidx.appcompat.R.id.search_src_text);
-        searchView.setQueryHint("Search");
+        searchView.setQueryHint(getString(R.string.search_hint));
         searchView.setIconifiedByDefault(false);
         searchView.setFocusable(true);
         searchView.setIconified(false);
@@ -411,5 +410,9 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         return RectangularBounds.newInstance(
                 new LatLng(latLng.latitude - delta, latLng.longitude - delta),
                 new LatLng(latLng.latitude + delta, latLng.longitude + delta));
+    }
+
+    public interface InterfaceListener {
+       void updateUI (NearByPlace nearbyPlace, List<String> reservedRestaurant);
     }
 }

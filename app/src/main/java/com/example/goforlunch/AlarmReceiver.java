@@ -68,8 +68,10 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void updateLunchers(List<User> users, Context context) {
-        String message = "Vous déjeunez ce midi avec " + luncherList(users) + "dans le restaurant " + mRestaurantName +
-                " qui se situe au " + mAdress +". Bon Apétit !!";
+        String message = context.getResources().getString(R.string.notification_message, luncherList(users), mRestaurantName, mAdress);
+
+//                "Vous déjeunez ce midi avec " + luncherList(users) + "dans le restaurant " + mRestaurantName +
+//                " qui se situe au " + mAdress +". Bon Apétit !!";
 
 
         buildNotification(context,mNotificationId, message);
@@ -95,7 +97,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         NotificationCompat.Builder notificationBuild =
                 new NotificationCompat.Builder(context, "CHANNEL")
                         .setSmallIcon(R.drawable.ic_baseline_check_24)
-                        .setContentTitle("C'est l'heure de déjeuner !")
+                        .setContentTitle(context.getResources().getString(R.string.notification_title))
                         .setContentText(message)
                         .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                         .setPriority(NotificationCompat.PRIORITY_HIGH);

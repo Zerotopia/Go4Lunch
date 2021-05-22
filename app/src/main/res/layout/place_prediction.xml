@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="18sp"
-        tools:text="Place Name" />
+        tools:text="@string/place_name_tool" />
 
     <TextView
         android:id="@+id/text_view_address"
@@ -20,6 +20,6 @@
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:layout_marginTop="2dp"
-        tools:text="123 Main Street, San Francisco, CA USA" />
+        tools:text="@string/address_tool" />
 
 </LinearLayout>

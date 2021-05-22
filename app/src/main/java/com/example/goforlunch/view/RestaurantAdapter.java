@@ -95,8 +95,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             restaurantAddress.setText(place.getAddress().split(",")[0]);
             if (place.getOpen() != null) {
                 if (place.getOpen().isOp())
-                    restaurantOpen.setText("Open Now");
-                else restaurantOpen.setText("Close");
+                    restaurantOpen.setText(R.string.open_now);
+                else restaurantOpen.setText(R.string.close);
             }
         }
 

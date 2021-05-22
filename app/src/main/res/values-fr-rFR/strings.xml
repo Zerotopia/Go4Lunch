@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Go4Lunch</string>
+    <string name="call">APPEL</string>
+    <string name="like">AIME</string>
+    <string name="website">SITE WEB</string>
+    <string name="place_name_tool">Nom de la Place</string>
+    <string name="address_tool">13 rue Jean Jaures, 46230 Cieurac, France</string>
+    <string name="permission_message">Cette application a besoin de votre localisation afin de vous proposer des restaurant à proximité de votre lieu de travail.</string>
+    <string name="search_hint">Recherche</string>
+    <string name="open_now">"Ouvert "</string>
+    <string name="close">Fermé</string>
+    <string name="notification_title">C\'est l\'heure de déjeuner !!</string>
+    <string name="is_joining">%1$s a réservé</string>
+    <string name="lunch_in">%1$s mange à %2$s</string>
+    <string name="navigation_drawer_open">Ouvrir menu de navigation</string>
+    <string name="navigation_drawer_close">Fermer menu de navigation</string>
+    <string name="notification_message">Vous déjeunez ce midi avec %1$s dans le restaurant %2$s qui se situe au %3$s.  Bon Appétit !</string>
+    <string name="not_yet">%1$s n\'a pas encore choisi.</string>
+</resources>
