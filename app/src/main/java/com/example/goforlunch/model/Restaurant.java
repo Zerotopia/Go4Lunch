@@ -48,6 +48,12 @@ public class Restaurant {
     }
 
     public Restaurant() {
+
+    }
+
+    public Restaurant(List<String> likers, String id) {
+        Likers = likers;
+        Id = id;
     }
 
     public List<String> getLikers() {

@@ -45,7 +45,7 @@ public class User {
         Photo = photo;
         firstName = UserName.split(" ")[0];
         lastName = UserName.split(" ")[1];
-        Log.d("USERTAAAAAAAAGGGGGGGG", "User: firstnam ::: " + firstName + " lastName :: " + lastName);
+     //   Log.d("USERTAAAAAAAAGGGGGGGG", "User: firstnam ::: " + firstName + " lastName :: " + lastName);
     }
 
     public String getUserName() {

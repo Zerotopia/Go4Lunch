@@ -289,7 +289,7 @@ public class NetworkRepository {
         return data;
     }
 
-    private Integer computeRatio(double ratioPlace, Double ratio) {
+    public static int computeRatio(double ratioPlace, Double ratio) {
         double result = 3 * (0.7 * ratioPlace + 0.3 * (ratio / 5.0));
         if (result <= 0.5) return 0;
         if (result <= 1.5) return 1;
@@ -325,7 +325,7 @@ public class NetworkRepository {
 //        return data;
 //    }
 
-    private int ratioRestaurant(String id, List<Restaurant> restaurants) {
+    public static int ratioRestaurant(String id, List<Restaurant> restaurants) {
         for (Restaurant restaurant : restaurants)
             if (id.equals(restaurant.getId())) return restaurant.getLikers().size();
         return 0;
@@ -338,10 +338,9 @@ public class NetworkRepository {
 //           mTotalUsers = queryDocumentSnapshots.size();
 //        });
         RestaurantManager.getAllRestaurant().addOnSuccessListener(queryDocumentSnapshots -> {
-
-            List<Restaurant> restaurants = queryDocumentSnapshots.toObjects(Restaurant.class);
             for (com.example.goforlunch.model.Place place : nearByPlace.getResults())
-                dataList.add(numberOfLuncher (place.getId(), queryDocumentSnapshots));
+                dataList.add(numberOfLuncher (place.getId(), queryDocumentSnapshots))
+                        ;
             data.setValue(dataList);
         });
         return data;
