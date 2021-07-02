@@ -17,4 +17,15 @@
     <string name="navigation_drawer_close">Fermer menu de navigation</string>
     <string name="notification_message">Vous déjeunez ce midi avec %1$s dans le restaurant %2$s qui se situe au %3$s.  Bon Appétit !</string>
     <string name="not_yet">%1$s n\'a pas encore choisi.</string>
+    <string name="your_lunch">VOTRE RESTAURANT</string>
+    <string name="settings">OPTIONS</string>
+    <string name="logout">DECONNEXION</string>
+    <string name="map_view">Plan</string>
+    <string name="list_view">Restaurants</string>
+    <string name="workmates">Collègues</string>
+    <string name="no_restaurant">Vous n\'avez pas choisi de restaurant pour l\'instant.</string>
+    <string name="sort_by_name">Trier par nom</string>
+    <string name="sort_by_ratio">trier par note</string>
+    <string name="sort_by_headcount">Trier par effectif</string>
+    <string name="sort_by_distance">Trier par distance</string>
 </resources>

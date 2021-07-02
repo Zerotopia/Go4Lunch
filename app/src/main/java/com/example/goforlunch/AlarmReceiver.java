@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.goforlunch.activity.DetailActivity;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.repository.DetailRepository;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -32,6 +34,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private String mAdress;
     private int mNotificationId;
     private List<User> mUsers = new ArrayList<>();
+    private boolean mNotificationEnable;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -39,30 +42,31 @@ public class AlarmReceiver extends BroadcastReceiver {
         // an Intent broadcast.
      //   DetailRepository detailRepository = new DetailRepository();
 
+        mNotificationEnable = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(DetailActivity.NOTIFICATION_ENABLE,true);
+        if (mNotificationEnable) {
 
+            mNotificationId = intent.getIntExtra("notificationId", 42);
+            mRestaurantName = intent.getStringExtra("restaurantName");
+            mAdress = intent.getStringExtra("address");
+            //String lunchers = intent.getStringExtra("lunchers");
+            String userId = intent.getStringExtra("userId");
+            String restaurantId = intent.getStringExtra("restaurantId");
 
-        mNotificationId = intent.getIntExtra("notificationId",42);
-        mRestaurantName = intent.getStringExtra("restaurantName");
-        mAdress = intent.getStringExtra("address");
-        //String lunchers = intent.getStringExtra("lunchers");
-        String userId = intent.getStringExtra("userId");
-        String restaurantId = intent.getStringExtra("restaurantId");
+            mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            createNotificationChannel();
+            Log.d("TAG", "onReceive: notification");
+            UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
+                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
+                    if (!documentSnapshot.getId().equals(userId))
+                        mUsers.add(documentSnapshot.toObject(User.class));
+                updateLunchers(mUsers, context);
+                //data.setValue(users);
+            });
+            //detailRepository.getLunchers(restaurantId,userId).observe(context.ge, users -> {
 
-        mNotificationManager =  (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        createNotificationChannel();
-        Log.d("TAG", "onReceive: notification");
-        UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
-            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
-                if (!documentSnapshot.getId().equals(userId))
-                    mUsers.add(documentSnapshot.toObject(User.class));
-            updateLunchers(mUsers, context);
-            //data.setValue(users);
-        });
-        //detailRepository.getLunchers(restaurantId,userId).observe(context.ge, users -> {
+            //});
 
-        //});
-
-
+        }
 
      //   throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -104,12 +108,12 @@ public class AlarmReceiver extends BroadcastReceiver {
         mNotificationManager.notify(id, notificationBuild.build());
     }
 
-    private String luncherList (List<User> lunchers) {
-        String result = "";
+    public static String luncherList (List<User> lunchers) {
+        StringBuilder result = new StringBuilder();
         for (User user : lunchers) {
-            result += user.getUserName() + " ";
+            result.append(user.getUserName()).append(" ");
         }
-        return result;
+        return result.toString();
     }
 
 

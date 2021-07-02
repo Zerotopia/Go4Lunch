@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -30,10 +31,13 @@ import com.example.goforlunch.ListItemClickListener;
 import com.example.goforlunch.R;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.NearByPlace;
-import com.example.goforlunch.model.Place;
 import com.example.goforlunch.view.MapFragment;
 import com.example.goforlunch.view.RecyclerFragment;
 import com.example.goforlunch.viewmodel.NetworkViewModel;
+import com.facebook.login.LoginManager;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
@@ -41,6 +45,7 @@ import com.google.android.libraries.places.api.model.LocationBias;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +73,10 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     public static final int MAP_FRAGMENT = 0;
     public static final int RESTAURANT_FRAGMENT = 1;
     public static final int WORKER_FRAGMENT = 2;
+    public static final int SORT_NAME_LIST = 5;
+    public static final int SORT_RATIO_LIST = 6;
+    public static final int SORT_HEADCOUNT_LIST = 7;
+    public static final int SORT_DISTANCE_LIST = 8;
     private int mSelectedFragment;
     private NetworkViewModel mNetworkViewModel;
     private Handler handler = new Handler();
@@ -89,16 +98,18 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private LocationBias mBias;
 
     private LocationManager mLocationManager;
-  //  private List<Double> mRatioLike;
+    private String mCurrentRestaurantId;
+    //  private List<Double> mRatioLike;
 
     @Override
     protected void onResume() {
         Log.d(TAG, "onResume: ");
         super.onResume();
-       // setViewModel();
+        // setViewModel();
         Log.d(TAG, "onResume: exit resume");
         mNetworkViewModel.initTotalUsers();
         mNetworkViewModel.getTotalUsersObservable().observe(this, this::updateTotalUsers);
+        mCurrentRestaurantId = mPreferences.getString(DetailActivity.CURRENT_RESTAURANT, "");
         Log.d(TAG, "onResume: exit resume");
     }
 
@@ -113,6 +124,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         mBottomNavigationView = findViewById(R.id.mainactivity_bottom_navigation);
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
+        //mCurrentRestaurantId = mPreferences.getString(DetailActivity.CURRENT_RESTAURANT, "");
         mDrawerLayout = findViewById(R.id.map_activity_drawer_layout);
         mNavigationView = findViewById(R.id.map_activity_navigation_drawer);
         mToolbar = findViewById(R.id.map_activity_toolbar);
@@ -126,6 +138,14 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         setViewModel();
         Log.d(TAG, "onCreate: exitcreate");
 
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu: ***************************");
+      if (mSelectedFragment != RESTAURANT_FRAGMENT)
+            menu.findItem(R.id.sort_item).setVisible(false);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     /**
@@ -182,7 +202,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     /*******************************************************************************************/
     private void configureBottomView() {
         Log.d(TAG, "configureBottomView: entre");
-       // updateMapFragment();
+        // updateMapFragment();
         Log.d(TAG, "configureBottomView: setNavigationlistner");
         mBottomNavigationView.setOnNavigationItemSelectedListener(item ->
                 updateFragmentId(item.getItemId()));
@@ -200,17 +220,36 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
             case R.id.bottom_menu_map:
                 Log.d(TAG, "updateFragment: map");
                 updateMapFragment();
-                return;
+                break;
             case R.id.bottom_menu_list:
                 Log.d(TAG, "updateFragment: list");
-                updateRecyclerFragment(true);
-                return;
+                // Toast.makeText(this,"pas de tri",Toast.LENGTH_LONG).show();
+                updateRecyclerFragment(RESTAURANT_FRAGMENT);
+                break;
             case R.id.bottom_menu_worker:
                 Log.d(TAG, "updateFragment: work");
-                updateRecyclerFragment(false);
-                return;
+                updateRecyclerFragment(WORKER_FRAGMENT);
+                break;
+            case R.id.sort_name_item:
+                // Toast.makeText(this,"tri par noms",Toast.LENGTH_LONG).show();
+                updateRecyclerFragment(SORT_NAME_LIST);
+                break;
+            case R.id.sort_ratio_item:
+                // Toast.makeText(this,"tri par notes",Toast.LENGTH_LONG).show();
+                updateRecyclerFragment(SORT_RATIO_LIST);
+                break;
+            case R.id.sort_headcount_item:
+                Log.d(TAG, "updateFragment: TRI");
+                //   Toast.makeText(this,"tri par nombre de personne",Toast.LENGTH_LONG).show();
+                updateRecyclerFragment(SORT_HEADCOUNT_LIST);
+                break;
+            case R.id.sort_distance_item:
+                //     Toast.makeText(this,"tri par distance",Toast.LENGTH_LONG).show();
+                updateRecyclerFragment(SORT_DISTANCE_LIST);
+                break;
             default:
         }
+
     }
 
     private void updateMapFragment() {
@@ -222,16 +261,16 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                     .replace(R.id.top_view_container, mMapFragment)
                     .commit();
         }
-            mSelectedFragment = MAP_FRAGMENT;
+        mSelectedFragment = MAP_FRAGMENT;
     }
 
-    private void updateRecyclerFragment(boolean list) {
-        mRecyclerFragment = RecyclerFragment.newInstance(list);
+    private void updateRecyclerFragment(int list) {
+        mRecyclerFragment = RecyclerFragment.newInstance(list, mInitialposition);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.top_view_container, mRecyclerFragment)
                 .commit();
-        mSelectedFragment = (list) ? RESTAURANT_FRAGMENT : WORKER_FRAGMENT;
+        mSelectedFragment = (list == WORKER_FRAGMENT) ? WORKER_FRAGMENT : RESTAURANT_FRAGMENT;
     }
 /**************************************************************************/
     /**
@@ -251,24 +290,35 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
         if (item.getItemId() == R.id.search_item) {
             sessionToken = AutocompleteSessionToken.newInstance();
             return false;
-        }
+        } else
+            mNetworkViewModel.changeFragment(item.getItemId());
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_map_item:
-                updateMapFragment();
-                break;
-            case R.id.menu_restaurant_item:
-                updateRecyclerFragment(true);
-                break;
-            case R.id.menu_worker_item:
-                updateRecyclerFragment(false);
-                break;
-            default:
-                break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_lunch_item) {
+            //updateMapFragment();
+            //  mCurrentRestaurantId = mPreferences.getString(DetailActivity.CURRENT_RESTAURANT,"");
+            if ((mCurrentRestaurantId != null) && (!mCurrentRestaurantId.isEmpty()))
+                itemClick(mCurrentRestaurantId);
+            else Toast.makeText(this, R.string.no_restaurant, Toast.LENGTH_LONG).show();
+        } else if (itemId == R.id.menu_settings_item) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            //updateRecyclerFragment(true);
+        } else if (itemId == R.id.menu_logout_item) {
+            FirebaseAuth.getInstance().signOut();
+            GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build();
+            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
+            googleSignInClient.signOut();
+            LoginManager.getInstance().logOut();
+            finish();
+            //updateRecyclerFragment(false);
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
@@ -357,8 +407,8 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
 //        String[] perms = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
 //        if (EasyPermissions.hasPermissions(this, perms)) {
 //            // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 
 //        } else {
 //            EasyPermissions.requestPermissions(this, "Need Location", 123, perms);
@@ -413,7 +463,8 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
                 new LatLng(latLng.latitude + delta, latLng.longitude + delta));
     }
 
-    public interface InterfaceListener {
-       void updateUI (NearByPlace nearbyPlace, List<String> reservedRestaurant);
-    }
+//    public interface LogoutListener {
+//       void logout ();
+//    }
+
 }

@@ -1,9 +1,7 @@
 package com.example.goforlunch.activity;
 
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -16,7 +14,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,7 +37,6 @@ import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.viewmodel.DetailViewModel;
-import com.example.goforlunch.viewmodel.LikeViewModel;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -51,6 +47,8 @@ import java.util.List;
 public class DetailActivity extends AppCompatActivity {
 
     private static final String TAG = "DETAILACTIVITYTAG";
+    public static final String CURRENT_RESTAURANT = "Current restaurant Id";
+    public static final String NOTIFICATION_ENABLE = "notification enable";
     private ImageView mRestaurantPicture;
     private RecyclerView mLuncherList;
 
@@ -74,6 +72,7 @@ public class DetailActivity extends AppCompatActivity {
 
     private boolean mLike;
     private boolean mLunch;
+    //private boolean mNotification;
 
     private Restaurant mCurrentRestaurant;
 
@@ -160,7 +159,17 @@ public class DetailActivity extends AppCompatActivity {
         if ((mCurrentRestaurant != null) && !mCurrentRestaurant.getId().isEmpty())
             RestaurantManager.updateRestaurantLunchers(mCurrentRestaurant.getNumberOfLunchers() - 1, mCurrentRestaurant.getId());
         setAlarmManager();
+        setCurrentRestaurant();
         mDetailViewModel.changeUserRestaurant();
+    }
+
+    private void setCurrentRestaurant() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
+        SharedPreferences.Editor edit = preferences.edit();
+        if (mLunch) edit.putString(CURRENT_RESTAURANT,"");
+        else edit.putString(CURRENT_RESTAURANT,uid);
+        edit.apply();
+        //mNotification = preferences.getBoolean(NOTIFICATION_ENABLE,false);
     }
 
     public void webOnClickListener() {

@@ -5,16 +5,14 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.goforlunch.repository.DetailRepository;
-import com.example.goforlunch.repository.LikeRepository;
 import com.example.goforlunch.repository.NetworkRepository;
-import com.example.goforlunch.repository.PredictionRepository;
 
 public class ViewModelFactory implements ViewModelProvider.Factory {
 
 
     private NetworkRepository mNetworkRepository;
-    private PredictionRepository mPredictionRepository;
-    private LikeRepository mLikeRepository;
+//    private PredictionRepository mPredictionRepository;
+   // private LikeRepository mLikeRepository;
     private DetailRepository mDetailRepository;
 
 

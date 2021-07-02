@@ -2,8 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginStart="3dp"
+    android:layout_marginBottom="10dp"
     android:orientation="horizontal"
     android:weightSum="10">
 
@@ -23,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp"/>
+            android:layout_marginBottom="2dp" />
 
         <TextView
             android:id="@+id/restaurant_open_hours"
@@ -37,6 +38,15 @@
         android:layout_gravity="bottom"
         android:layout_weight="2"
         android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/distance"
+            android:textSize="11sp"
+            android:gravity="end"
+            tools:text="aze"
+            />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -54,7 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="11sp"/>
+                android:textSize="11sp" />
         </LinearLayout>
 
         <RatingBar
@@ -62,8 +72,8 @@
             style="?android:attr/ratingBarStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5sp"
-            android:layout_gravity="end" />
+            android:layout_gravity="end"
+            android:layout_marginTop="5sp" />
     </LinearLayout>
 
     <ImageView

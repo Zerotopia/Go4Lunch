@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.example.goforlunch.AlarmReceiver.luncherList;
 import static com.example.goforlunch.WorkerAdapter.decidedFirstList;
 import static com.example.goforlunch.repository.NetworkRepository.computeRatio;
 import static com.example.goforlunch.repository.NetworkRepository.ratioRestaurant;
@@ -68,15 +69,26 @@ public class ExampleUnitTest {
 
         List<User> resultTest = decidedFirstList(users);
 
-        assertEquals(users.get(6),resultTest.get(0));
-        assertEquals(users.get(0),resultTest.get(1));
-        assertEquals(users.get(2),resultTest.get(2));
-        assertEquals(users.get(3),resultTest.get(3));
-        assertEquals(users.get(1),resultTest.get(4));
-        assertEquals(users.get(5),resultTest.get(5));
-        assertEquals(users.get(4),resultTest.get(6));
+        assertEquals(users.get(6), resultTest.get(0));
+        assertEquals(users.get(0), resultTest.get(1));
+        assertEquals(users.get(2), resultTest.get(2));
+        assertEquals(users.get(3), resultTest.get(3));
+        assertEquals(users.get(1), resultTest.get(4));
+        assertEquals(users.get(5), resultTest.get(5));
+        assertEquals(users.get(4), resultTest.get(6));
 
-        }
+    }
+
+    @Test
+    public void luncherList_is_correct() {
+        List<User> users = new ArrayList<User>() {{
+            add(new User("Albert Einstein", "", ""));
+            add(new User("Celestine Ernest", "", ""));
+            add(new User("Ludivine Zaccari", "", ""));
+        }};
+     String expected = "Albert Einstein Celestine Ernest Ludivine Zaccari ";
+        assertEquals(expected, luncherList(users));
+    }
 
     @Test
     public void addition_isCorrect() {

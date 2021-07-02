@@ -39,7 +39,7 @@ import com.google.android.libraries.places.api.model.LocationBias;
 import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener
-    , MapActivity.InterfaceListener
+    //, MapActivity.InterfaceListener
         //      , FragmentViewModelListener
 {
     public static final String TAG = "TAG";
@@ -210,11 +210,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             mMapFragment.getMapAsync(this);
     }
 
-
-    @Override
-    public void updateUI(NearByPlace nearbyPlace, List<String> reservedRestaurant) {
-
-    }
+//
+//    @Override
+//    public void updateUI(NearByPlace nearbyPlace, List<String> reservedRestaurant) {
+//
+//    }
 }
 
 

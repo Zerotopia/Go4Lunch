@@ -3,14 +3,10 @@ package com.example.goforlunch.di;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import com.example.goforlunch.MapClient;
 import com.example.goforlunch.R;
 import com.example.goforlunch.repository.DetailRepository;
-import com.example.goforlunch.repository.LikeRepository;
 import com.example.goforlunch.repository.NetworkRepository;
-import com.example.goforlunch.repository.PredictionRepository;
 import com.example.goforlunch.viewmodel.ViewModelFactory;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;

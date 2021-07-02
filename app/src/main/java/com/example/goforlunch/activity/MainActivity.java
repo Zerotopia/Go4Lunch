@@ -49,7 +49,8 @@ import java.util.List;
 import pub.devrel.easypermissions.EasyPermissions;
 //import com.example.go4lunch.view.RecyclerFragment;
 
-public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
+public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks
+        {
 
     private static final int SIGN_IN_KEY = 42;
     private static final String TAG = "TAG";
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private CallbackManager mCallbackManager;
     private FirebaseAuth mAuth;
     private LoginManager mLoginManager;
+    private boolean mConnectWithGoogle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +70,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         mAuth = FirebaseAuth.getInstance();
         mGoogleSignInButton = findViewById(R.id.google_login_button);
-        int heightbefore = mGoogleSignInButton.getMinimumHeight();
-        //   mGoogleSignInButton.setSize(SignInButton.SIZE_STANDARD);
-        int heightafter = mGoogleSignInButton.getMinimumHeight();
+//        int heightbefore = mGoogleSignInButton.getMinimumHeight();
+//        //   mGoogleSignInButton.setSize(SignInButton.SIZE_STANDARD);
+//        int heightafter = mGoogleSignInButton.getMinimumHeight();
 
         Log.d(TAG, "onCreate: before option");
         ;
@@ -124,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         LoginManager.getInstance().registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                mConnectWithGoogle = false;
                 AccessToken access_token = loginResult.getAccessToken();
                 GraphRequest request = GraphRequest.newMeRequest(access_token,
                         (object, response) -> {
@@ -231,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                                 // Sign in success, update UI with the signed-in user's information
                                 Log.d(TAG, "signInWithCredential:success");
                                 FirebaseUser user = mAuth.getCurrentUser();
+                                mConnectWithGoogle = true;
                                 //Log.d(TAG, "onComplete: " + user.toString() + ":: " + user.getEmail());
                                 // user.sendEmailVerification();
                                 //////////////////////Create User ///////////////////////////////////////////////
@@ -286,6 +290,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             edit.putString(MapActivity.CURRENTID, id);
             edit.apply();
         }
+
+//        @Override
+//        public void logout() {
+//            if (mConnectWithGoogle) {
+//                mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
+//                    FirebaseAuth.getInstance().signOut();
+//                });
+//            }
+//            else {
+//                LoginManager.getInstance().logOut();
+//            }
+//        }
 
 
 //    private void startSignInActivity() {

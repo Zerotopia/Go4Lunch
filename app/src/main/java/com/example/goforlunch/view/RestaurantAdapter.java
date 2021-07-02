@@ -17,22 +17,28 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.goforlunch.ListItemClickListener;
 import com.example.goforlunch.R;
+import com.example.goforlunch.model.InfoRestaurant;
+import com.example.goforlunch.model.ListInfoRestaurant;
 import com.example.goforlunch.model.Place;
 
 import java.util.List;
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
 
-    private List<Place> mPlaces;
-    private List<Double> mRatioLike;
-    private List<Integer> mNumberOfLunchers;
+    //private List<Place> mPlaces;
+    private List<InfoRestaurant> mInfoRestaurants;
+    //private List<Double> mRatioLike;
+    //private List<Integer> mNumberOfLunchers;
+    //private List<Integer> mDistances;
 
     private String TAG = "ADAPTERTAGADAPTERTAGADAPTERTAG";
 
-    public RestaurantAdapter(List<Place> places, List<Double> ratioLike, List<Integer> numberOfLunchers) {
-        mPlaces = places;
-        mRatioLike = ratioLike;
-        mNumberOfLunchers = numberOfLunchers;
+    public RestaurantAdapter(ListInfoRestaurant infoRestaurant) {
+      //  mPlaces = places;
+        mInfoRestaurants = infoRestaurant.getInfoRestaurantList();
+      //  mRatioLike = ratioLike;
+      //  mNumberOfLunchers = numberOfLunchers;
+      //  mDistances = distances;
     }
 
     @NonNull
@@ -44,34 +50,40 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
     @Override
     public void onBindViewHolder(@NonNull RestaurantAdapter.RestaurantViewHolder holder, int position) {
-        Place place = mPlaces.get(position);
-        double ratioPlace = mRatioLike.get(position);
-        Integer numberOfLuncher = mNumberOfLunchers.get(position);
-        holder.place = place;
-        holder.ratioPlace = ratioPlace;
-        holder.numberOfluncher = numberOfLuncher;
+        //Place place = mPlaces.get(position);
+        // double ratioPlace = mRatioLike.get(position);
+        //Integer numberOfLuncher = mNumberOfLunchers.get(position);
+        holder.place = mInfoRestaurants.get(position).getPlace();
+        holder.infoRestaurant = mInfoRestaurants.get(position);
+        //holder.ratioPlace = mRatioLike.get(position);
+        //holder.numberOfluncher = mNumberOfLunchers.get(position);
+        //holder.distance = mDistances.get(position);
         holder.setRestaurantInfo();
         holder.setLuncherInfo();
         holder.setRestaurantPicture();
-
+        holder.setDistance();
     }
 
     @Override
     public int getItemCount() {
-        return mPlaces.size();
+        return mInfoRestaurants.size();
     }
 
     public class RestaurantViewHolder extends RecyclerView.ViewHolder {
+
 
         TextView restaurantName;
         TextView restaurantAddress;
         TextView restaurantOpen;
         TextView numberLuncher;
+        TextView distanceRestaurant;
         RatingBar ratio;
         ImageView restaurantPicture;
         Place place;
-        double ratioPlace;
-        Integer numberOfluncher;
+        InfoRestaurant infoRestaurant;
+        //double ratioPlace;
+        //Integer numberOfluncher;
+        //Integer distance;
 
         public RestaurantViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +91,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             restaurantAddress = itemView.findViewById(R.id.restaurant_address);
             restaurantOpen = itemView.findViewById(R.id.restaurant_open_hours);
             numberLuncher = itemView.findViewById(R.id.number_luncher);
+            distanceRestaurant = itemView.findViewById(R.id.distance);
             ratio = itemView.findViewById(R.id.ratio);
             restaurantPicture = itemView.findViewById(R.id.restaurant_picture);
             itemView.setOnClickListener(view -> {
@@ -93,6 +106,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         public void setRestaurantInfo() {
             restaurantName.setText(place.getName());
             restaurantAddress.setText(place.getAddress().split(",")[0]);
+            place.getGeometry().getCoordinate();
             if (place.getOpen() != null) {
                 if (place.getOpen().isOp())
                     restaurantOpen.setText(R.string.open_now);
@@ -101,8 +115,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
         }
 
         public void setLuncherInfo() {
-            numberLuncher.setText("(" + numberOfluncher.toString() + ")");
-            int rate = computeRatio(ratioPlace, place.getRatio());
+            numberLuncher.setText("(" + infoRestaurant.getHeadCount().toString() + ")");
+            int rate = infoRestaurant.getRatio();
             Log.d(TAG, "setLuncherInfo: rate = " + rate);
             if (rate == 0)
                 ratio.setVisibility(View.GONE);
@@ -118,6 +132,10 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
             if (result <= 1.5) return 1;
             if (result <= 2.5) return 2;
             return 3;
+        }
+
+        private void setDistance() {
+            distanceRestaurant.setText(infoRestaurant.getDistance().toString() + "m");
         }
 
         public void setRestaurantPicture() {

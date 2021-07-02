@@ -1,9 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-<item android:id="@+id/search_item"
-    android:icon="@drawable/ic_baseline_search_24"
-    android:title="Search"
-    app:showAsAction="collapseActionView|ifRoom"
-    app:actionViewClass="androidx.appcompat.widget.SearchView"/>
+
+    <item
+        android:id="@+id/sort_item"
+        android:icon="@drawable/ic_baseline_sort_24"
+        android:title="Sort"
+        app:showAsAction="collapseActionView|ifRoom">
+        <menu>
+            <item
+                android:id="@+id/sort_name_item"
+                android:title="@string/sort_by_name"
+                app:showAsAction="withText" />
+            <item
+                android:id="@+id/sort_ratio_item"
+                android:title="@string/sort_by_ratio"
+                app:showAsAction="withText" />
+            <item
+                android:id="@+id/sort_headcount_item"
+                android:title="@string/sort_by_headcount"
+                app:showAsAction="withText" />
+            <item
+                android:id="@+id/sort_distance_item"
+                android:title="@string/sort_by_distance"
+                app:showAsAction="withText" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/search_item"
+        android:icon="@drawable/ic_baseline_search_24"
+        android:title="@string/search_hint"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="collapseActionView|ifRoom" />
 </menu>
