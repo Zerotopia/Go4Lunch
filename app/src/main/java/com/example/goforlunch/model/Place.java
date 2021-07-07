@@ -42,6 +42,10 @@ public class Place {
         return mGeometry;
     }
 
+    public void setGeometry(Geometry geometry) {
+        mGeometry = geometry;
+    }
+
     public String getIconUrl() {
         return mIconUrl;
     }

@@ -356,6 +356,11 @@ public class NetworkRepository {
         final MutableLiveData<Integer> data = new MutableLiveData<>();
         UserManager.getAllUser().addOnSuccessListener(queryDocumentSnapshots -> {
             data.setValue(queryDocumentSnapshots.size());
+        }).addOnCanceledListener(() -> {
+            Log.d("VIEWMODELTAG", "getTotalUsers: cancel");
+        }).addOnFailureListener(e -> {
+            Log.d("VIEWMODELTAG", "getTotalUsers: fail :::  " + e.getMessage());
+
         });
         return data;
     }
@@ -365,4 +370,5 @@ public class NetworkRepository {
         data.setValue(id);
         return data;
     }
-}
+
+ }

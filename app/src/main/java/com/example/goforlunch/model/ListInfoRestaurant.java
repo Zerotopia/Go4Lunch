@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ListInfoRestaurant {
 
-    private List<InfoRestaurant> mInfoRestaurantList;
+    private final List<InfoRestaurant> mInfoRestaurantList;
 
     public ListInfoRestaurant(List<Place> restaurants, List<Integer> ratioRestaurant, List<Integer> headCountRestaurant, List<Integer> distanceRestaurant) {
         List<InfoRestaurant> result = new ArrayList<>();

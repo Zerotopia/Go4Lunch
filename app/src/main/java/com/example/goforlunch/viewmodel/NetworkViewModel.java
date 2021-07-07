@@ -37,7 +37,7 @@ public class NetworkViewModel extends ViewModel {
 
     public void initTotalUsers() {
         mTotalUsersObservable = mNetworkRepository.getTotalUsers();
-
+        Log.d("VIEWMODELTAG", "initTotalUsers: ");
     }
 
     public void init(String userId, LocationBias bias, int totalUsers) {

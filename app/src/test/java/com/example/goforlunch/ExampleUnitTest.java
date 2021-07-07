@@ -2,11 +2,17 @@ package com.example.goforlunch;
 
 import android.util.Log;
 
+import com.example.goforlunch.model.Coordinate;
+import com.example.goforlunch.model.Geometry;
+import com.example.goforlunch.model.InfoRestaurant;
+import com.example.goforlunch.model.ListInfoRestaurant;
+import com.example.goforlunch.model.Place;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.internal.runners.statements.Fail;
 
@@ -18,6 +24,7 @@ import static com.example.goforlunch.AlarmReceiver.luncherList;
 import static com.example.goforlunch.WorkerAdapter.decidedFirstList;
 import static com.example.goforlunch.repository.NetworkRepository.computeRatio;
 import static com.example.goforlunch.repository.NetworkRepository.ratioRestaurant;
+import static com.example.goforlunch.view.RecyclerFragment.distanceRestaurant;
 import static org.junit.Assert.*;
 
 /**
@@ -26,6 +33,27 @@ import static org.junit.Assert.*;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class ExampleUnitTest {
+
+    //private List<Restaurant> mRestaurants;
+    //private List<User> mUsers;
+
+    private ListInfoRestaurant mListInfoRestaurant;
+
+    @Before
+    public void setTestList() {
+        List<Place> places = new ArrayList<Place>() {{
+            add(new Place("0","abc", ""));
+            add(new Place("1","wxyz",""));
+            add(new Place("2", "ghi", ""));
+            add(new Place("3", "abf", ""));
+            add(new Place("4", "klm", ""));
+            add(new Place("5", "lmn", ""));
+        }};
+        List<Integer> ratios = Arrays.asList(2,0,0,3,1,2);
+        List<Integer> headcounters = Arrays.asList(2,0,3,1,4,1);
+        List<Integer> distances = Arrays.asList(211,310,420,119,201,364);
+        mListInfoRestaurant = new ListInfoRestaurant(places,ratios,headcounters,distances);
+    }
 
     @Test
     public void compute_ratio_is_correct() {
@@ -89,6 +117,69 @@ public class ExampleUnitTest {
      String expected = "Albert Einstein Celestine Ernest Ludivine Zaccari ";
         assertEquals(expected, luncherList(users));
     }
+
+    @Test
+    public void sort_by_name_is_correct() {
+        mListInfoRestaurant.sortByNames();
+        List<InfoRestaurant> infoRestaurants = mListInfoRestaurant.getInfoRestaurantList();
+
+        assertEquals("0", infoRestaurants.get(0).getPlace().getId());
+        assertEquals("3", infoRestaurants.get(1).getPlace().getId());
+        assertEquals("2", infoRestaurants.get(2).getPlace().getId());
+        assertEquals("4", infoRestaurants.get(3).getPlace().getId());
+        assertEquals("5", infoRestaurants.get(4).getPlace().getId());
+        assertEquals("1", infoRestaurants.get(5).getPlace().getId());
+    }
+
+    @Test
+    public void sort_by_ratio_is_correct() {
+        mListInfoRestaurant.sortByRatios();
+        List<InfoRestaurant> infoRestaurants = mListInfoRestaurant.getInfoRestaurantList();
+
+        assertEquals("3", infoRestaurants.get(0).getPlace().getId());
+        assertEquals("0", infoRestaurants.get(1).getPlace().getId());
+        assertEquals("5", infoRestaurants.get(2).getPlace().getId());
+        assertEquals("4", infoRestaurants.get(3).getPlace().getId());
+        assertEquals("1", infoRestaurants.get(4).getPlace().getId());
+        assertEquals("2", infoRestaurants.get(5).getPlace().getId());
+    }
+
+    @Test
+    public void sort_by_headcount_is_correct() {
+        mListInfoRestaurant.sortByHeadCounts();
+        List<InfoRestaurant> infoRestaurants = mListInfoRestaurant.getInfoRestaurantList();
+
+        assertEquals("4", infoRestaurants.get(0).getPlace().getId());
+        assertEquals("2", infoRestaurants.get(1).getPlace().getId());
+        assertEquals("0", infoRestaurants.get(2).getPlace().getId());
+        assertEquals("3", infoRestaurants.get(3).getPlace().getId());
+        assertEquals("5", infoRestaurants.get(4).getPlace().getId());
+        assertEquals("1", infoRestaurants.get(5).getPlace().getId());
+    }
+
+    @Test
+    public void sort_by_distance_is_correct() {
+        mListInfoRestaurant.sortByDistances();
+        List<InfoRestaurant> infoRestaurants = mListInfoRestaurant.getInfoRestaurantList();
+
+        assertEquals("3", infoRestaurants.get(0).getPlace().getId());
+        assertEquals("4", infoRestaurants.get(1).getPlace().getId());
+        assertEquals("0", infoRestaurants.get(2).getPlace().getId());
+        assertEquals("1", infoRestaurants.get(3).getPlace().getId());
+        assertEquals("5", infoRestaurants.get(4).getPlace().getId());
+        assertEquals("2", infoRestaurants.get(5).getPlace().getId());
+    }
+
+//    @Test
+//    public void distanceRestaurant_is_correct() {
+//        Coordinate coordinate = new Coordinate(62.012,128.123);
+//        Geometry geometry = new Geometry(coordinate);
+//        Place place = new Place("01","aze","");
+//        place.setGeometry(geometry);
+//
+//        assertEquals(1572, distanceRestaurant(place,1.082488109,2.235993665));
+//
+//    }
 
     @Test
     public void addition_isCorrect() {

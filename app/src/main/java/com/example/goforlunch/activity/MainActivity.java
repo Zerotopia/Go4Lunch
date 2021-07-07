@@ -36,6 +36,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -128,25 +129,26 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             public void onSuccess(LoginResult loginResult) {
                 mConnectWithGoogle = false;
                 AccessToken access_token = loginResult.getAccessToken();
-                GraphRequest request = GraphRequest.newMeRequest(access_token,
-                        (object, response) -> {
-                            try {
+                firebaseAuthWithGoogle(access_token.getToken(), FacebookAuthProvider.getCredential(access_token.getToken()));
+              //  GraphRequest request = GraphRequest.newMeRequest(access_token,
+              //          (object, response) -> {
+               //             try {
                               //  String email = object.getString("email");
                                // String facebook_uid = object.getString("id");
                                // String social_id = object.getString("id");
                                // String first_name = object.getString("first_name");
                                // String last_name = object.getString("last_name");
                                // String name = object.getString("name");
-                                JSONObject pict = object.getJSONObject("picture");
-                                JSONObject data = pict.getJSONObject("data");
+               //                 JSONObject pict = object.getJSONObject("picture");
+               //                 JSONObject data = pict.getJSONObject("data");
                                 //String link = data.getString("url");
 //                                String link = object.getgetString("link");
-                                setUserInfo(
-                                        object.getString("id"),
-                                        object.getString("name"),
-                                        object.getString("email"),
-                                        data.getString("url"));
-                                startMapActivity();
+                                //setUserInfo(
+//                                        object.getString("id"),
+//                                        object.getString("name"),
+//                                        object.getString("email"),
+//                                        data.getString("url"));
+                               // startMapActivity();
 //                                );
 //                                String picture = "https://graph.facebook.com/" + facebook_uid + "/picture?type=large";
 //                                Log.d(TAG,  " picture"+picture);
@@ -158,18 +160,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 //                                Log.d(TAG, "onSuccess: pict ::" + pict.toString());
 //                               // Log.d(TAG, "onSuccess: pictObj :: ");
 //                                Log.d(TAG, "onSuccess: link ::" + link);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                Log.d(TAG, "onSuccess: ERROR");
-                            }
+                 //           } catch (JSONException e) {
+                 //               e.printStackTrace();
+                 //               Log.d(TAG, "onSuccess: ERROR");
+                 //           }
 
 
 
-                        });
-                Bundle parameters = new Bundle();
-                parameters.putString("fields", "id,name,email,picture");
-                request.setParameters(parameters);
-                request.executeAsync();
+                   //     });
+//                Bundle parameters = new Bundle();
+//                parameters.putString("fields", "id,name,email,picture");
+//                request.setParameters(parameters);
+//                request.executeAsync();
 
             }
 
@@ -211,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         // Google Sign In was successful, authenticate with Firebase
                         GoogleSignInAccount account = task.getResult(ApiException.class);
                         Log.d(TAG, "firebaseAuthWithGoogle:" + account.getIdToken());
-                        firebaseAuthWithGoogle(account.getIdToken());
+                        firebaseAuthWithGoogle(account.getIdToken(),GoogleAuthProvider.getCredential(account.getIdToken(), null));
                     } catch (ApiException e) {
                         // Google Sign In failed, update UI appropriately
                         Log.w(TAG, "Google sign in failed", e);
@@ -223,8 +225,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             } else mCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
 
-        private void firebaseAuthWithGoogle (String idToken){
-            AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        private void firebaseAuthWithGoogle (String idToken, AuthCredential credential){
+          //  AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
             Log.d(TAG, "firebaseAuthWithGoogle: get credential");
             mAuth.signInWithCredential(credential)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -252,7 +254,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
                             // ...
                         }
-                    });
+                    }).addOnFailureListener(e ->
+                    Log.d(TAG, "firebaseAuthWithGoogle: " + e.getMessage()));
         }
 
         private boolean hasLocationPermissions () {
@@ -288,6 +291,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             SharedPreferences.Editor edit = preferences.edit();
             Log.d("CONNEXION", "onComplete: id = " + id);
             edit.putString(MapActivity.CURRENTID, id);
+            edit.putString(MapActivity.CURRENTNAME,displayName);
+            edit.putString(MapActivity.CURRENTMAIL,email);
+            edit.putString(MapActivity.CURRENTPHOTO, urlPhoto);
             edit.apply();
         }
 

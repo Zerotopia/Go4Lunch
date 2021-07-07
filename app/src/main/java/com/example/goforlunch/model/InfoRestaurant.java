@@ -1,10 +1,10 @@
 package com.example.goforlunch.model;
 
 public class InfoRestaurant {
-    private Place mPlace;
-    private Integer mRatio;
-    private Integer mHeadCount;
-    private Integer mDistance;
+    private final Place mPlace;
+    private final Integer mRatio;
+    private final Integer mHeadCount;
+    private final Integer mDistance;
 
     public InfoRestaurant(Place restaurant, Integer ratio, Integer headCount, Integer distance) {
         mPlace = restaurant;

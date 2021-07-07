@@ -139,20 +139,20 @@ public class RecyclerFragment extends Fragment {
     private List<Integer> restaurantDistances(NearByPlace nearByPlace) {
         List<Integer> results = new ArrayList<>();
         for (Place place : nearByPlace.getResults()) {
-            results.add(distanceRestaurant(place));
+            results.add(distanceRestaurant(place, mInitLatitude, mInitLongitude));
         }
         return results;
     }
 
-    private int distanceRestaurant(Place place) {
+    public static int distanceRestaurant(Place place, double initLatitude, double initLongitude) {
         double latitude = Math.toRadians(place.getGeometry().getCoordinate().latitude);
         double longitude = Math.toRadians(place.getGeometry().getCoordinate().longitude);
 
-        double delta_lng = mInitLongitude - longitude;
-        double mid_lat = (mInitLatitude + latitude) / 2.0;
+        double delta_lng = initLongitude - longitude;
+        double mid_lat = (initLatitude + latitude) / 2.0;
 
         double x_projection = delta_lng * Math.cos(mid_lat);
-        double y_projection = mInitLatitude - latitude;
+        double y_projection = initLatitude - latitude;
 
         double result = EARTH_RADIUS * Math.sqrt(x_projection * x_projection + y_projection * y_projection);
         return (int) Math.round(result);

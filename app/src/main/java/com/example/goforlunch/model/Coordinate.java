@@ -17,4 +17,8 @@ public class Coordinate {
         return mLng;
     }
 
+    public Coordinate(double lat, double lng) {
+        mLat = lat;
+        mLng = lng;
+    }
 }

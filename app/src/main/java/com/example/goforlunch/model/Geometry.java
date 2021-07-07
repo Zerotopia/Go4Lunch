@@ -11,4 +11,8 @@ public class Geometry {
     public LatLng getCoordinate() {
         return new LatLng(mCoordinate.getLat(), mCoordinate.getLng());
     }
+
+    public Geometry(Coordinate coordinate) {
+        mCoordinate = coordinate;
+    }
 }
