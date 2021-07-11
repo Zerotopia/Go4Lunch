@@ -1,4 +1,4 @@
-package com.example.goforlunch;
+package com.example.goforlunch.view;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -13,21 +13,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Adapter for display the list of workmates in the recyclerview.
+ */
 public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder> {
 
     private List<User> mUserList;
     private boolean mDetail;
 
     public WorkerAdapter(List<User> userList, boolean detail) {
-        mUserList = decidedFirstList(userList);
         mDetail = detail;
+        if (mDetail) mUserList = userList;
+        else mUserList = decidedFirstList(userList);
     }
 
     @NonNull
     @Override
     public WorkerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        RowWorkerBinding binding = RowWorkerBinding.inflate(inflater,parent,false);
+        RowWorkerBinding binding = RowWorkerBinding.inflate(inflater, parent, false);
         return new WorkerAdapter.WorkerViewHolder(binding);
     }
 
@@ -37,6 +41,9 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
         holder.bindUser(user, mDetail);
     }
 
+    /**
+     * Function to sort workmate to have the workmates who has choiced a restaurant first.
+     */
     public static List<User> decidedFirstList(List<User> users) {
         List<User> decidedList = new ArrayList<>();
         List<User> undecidedList = new ArrayList<>();
@@ -69,7 +76,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
             mBinding = binding;
         }
 
-        public void bindUser (User user, Boolean detail) {
+        public void bindUser(User user, Boolean detail) {
             mBinding.setUser(user);
             mBinding.setList(detail);
             mBinding.executePendingBindings();

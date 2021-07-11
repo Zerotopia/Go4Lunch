@@ -5,13 +5,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Class that allow sorting the list of Restaurant among different criterion.
+ */
 public class ListInfoRestaurant {
 
     private final List<InfoRestaurant> mInfoRestaurantList;
 
     public ListInfoRestaurant(List<Place> restaurants, List<Integer> ratioRestaurant, List<Integer> headCountRestaurant, List<Integer> distanceRestaurant) {
         List<InfoRestaurant> result = new ArrayList<>();
-        for (int i = 0; i < restaurants.size(); i ++)
+        for (int i = 0; i < restaurants.size(); i++)
             result.add(new InfoRestaurant(restaurants.get(i), ratioRestaurant.get(i), headCountRestaurant.get(i), distanceRestaurant.get(i)));
         mInfoRestaurantList = result;
     }

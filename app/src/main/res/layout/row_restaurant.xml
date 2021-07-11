@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginStart="3dp"
     android:layout_marginBottom="10dp"
     android:orientation="horizontal"
@@ -40,13 +40,12 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/distance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/distance"
-            android:textSize="11sp"
             android:gravity="end"
-            tools:text="aze"
-            />
+            android:textSize="12sp"
+            tools:text="aze" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -64,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <RatingBar
@@ -73,7 +72,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginTop="5sp" />
+            android:layout_marginTop="5dp" />
     </LinearLayout>
 
     <ImageView

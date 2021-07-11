@@ -1,10 +1,13 @@
-package com.example.goforlunch;
+package com.example.goforlunch.repository;
 
-import com.example.goforlunch.repository.MapService;
+import com.example.goforlunch.interfaces.MapService;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Retrofit client
+ */
 public class MapClient {
 
     private static Retrofit buildRetrofit() {

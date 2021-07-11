@@ -4,19 +4,19 @@
     <item
         android:id="@+id/bottom_menu_map"
         android:enabled="true"
-        android:title="@string/map_view"
         android:icon="@drawable/ic_map_black_24dp"
-        app:showAsAction="ifRoom"/>
+        android:title="@string/map_view"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/bottom_menu_list"
         android:enabled="true"
-        android:title="@string/list_view"
         android:icon="@drawable/ic_view_list_black_24dp"
-        app:showAsAction="ifRoom"/>
+        android:title="@string/list_view"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/bottom_menu_worker"
         android:enabled="true"
-        android:title="@string/workmates"
         android:icon="@drawable/ic_people_black_24dp"
-        app:showAsAction="ifRoom"/>
+        android:title="@string/workmates"
+        app:showAsAction="ifRoom" />
 </menu>

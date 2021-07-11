@@ -1,7 +1,6 @@
-package com.example.goforlunch;
+package com.example.goforlunch.repository;
 
 import com.example.goforlunch.model.Restaurant;
-import com.example.goforlunch.model.User;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -10,6 +9,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
+/**
+ * Class to manage firebase database of restaurants.
+ */
 public class RestaurantManager {
 
     private static final String COLLECTION_NAME = "restaurants";
@@ -23,8 +25,8 @@ public class RestaurantManager {
     // --- CREATE ---
 
     public static Task<Void> createRestaurant(String uid) {
-        Restaurant userToCreate = new Restaurant();
-        return getRestaurantsCollection().document(uid).set(userToCreate);
+        Restaurant restaurantToCreate = new Restaurant();
+        return getRestaurantsCollection().document(uid).set(restaurantToCreate);
     }
 
     // --- GET ---
@@ -51,7 +53,7 @@ public class RestaurantManager {
     }
 
     public static Task<Void> updateRestaurantRatio(int ratio, String uid) {
-        return getRestaurantsCollection().document(uid).update("Ratio",ratio);
+        return getRestaurantsCollection().document(uid).update("Ratio", ratio);
     }
     // --- DELETE ---
 

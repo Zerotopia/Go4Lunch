@@ -1,30 +1,22 @@
 package com.example.goforlunch;
 
-import android.util.Log;
-
-import com.example.goforlunch.model.Coordinate;
-import com.example.goforlunch.model.Geometry;
 import com.example.goforlunch.model.InfoRestaurant;
 import com.example.goforlunch.model.ListInfoRestaurant;
 import com.example.goforlunch.model.Place;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.example.goforlunch.AlarmReceiver.luncherList;
-import static com.example.goforlunch.WorkerAdapter.decidedFirstList;
+import static com.example.goforlunch.receiver.AlarmReceiver.luncherList;
+import static com.example.goforlunch.view.WorkerAdapter.decidedFirstList;
 import static com.example.goforlunch.repository.NetworkRepository.computeRatio;
 import static com.example.goforlunch.repository.NetworkRepository.ratioRestaurant;
-import static com.example.goforlunch.view.RecyclerFragment.distanceRestaurant;
 import static org.junit.Assert.*;
 
 /**
@@ -33,9 +25,6 @@ import static org.junit.Assert.*;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class ExampleUnitTest {
-
-    //private List<Restaurant> mRestaurants;
-    //private List<User> mUsers;
 
     private ListInfoRestaurant mListInfoRestaurant;
 
@@ -169,17 +158,6 @@ public class ExampleUnitTest {
         assertEquals("5", infoRestaurants.get(4).getPlace().getId());
         assertEquals("2", infoRestaurants.get(5).getPlace().getId());
     }
-
-//    @Test
-//    public void distanceRestaurant_is_correct() {
-//        Coordinate coordinate = new Coordinate(62.012,128.123);
-//        Geometry geometry = new Geometry(coordinate);
-//        Place place = new Place("01","aze","");
-//        place.setGeometry(geometry);
-//
-//        assertEquals(1572, distanceRestaurant(place,1.082488109,2.235993665));
-//
-//    }
 
     @Test
     public void addition_isCorrect() {

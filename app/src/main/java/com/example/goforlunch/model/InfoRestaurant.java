@@ -1,5 +1,9 @@
 package com.example.goforlunch.model;
 
+/**
+ * Class that get together all criterion that will be use
+ * for the sorting features.
+ */
 public class InfoRestaurant {
     private final Place mPlace;
     private final Integer mRatio;

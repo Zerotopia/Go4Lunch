@@ -1,4 +1,4 @@
-package com.example.goforlunch;
+package com.example.goforlunch.receiver;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,20 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProviders;
 
+import com.example.goforlunch.R;
+import com.example.goforlunch.repository.UserManager;
 import com.example.goforlunch.activity.DetailActivity;
+import com.example.goforlunch.activity.SettingsActivity;
 import com.example.goforlunch.model.User;
-import com.example.goforlunch.repository.DetailRepository;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
@@ -29,64 +23,59 @@ import java.util.Objects;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    public static final String CHANNEL_ID = "CHANNEL";
     private NotificationManager mNotificationManager;
     private String mRestaurantName;
-    private String mAdress;
+    private String mAddress;
     private int mNotificationId;
     private List<User> mUsers = new ArrayList<>();
-    private boolean mNotificationEnable;
 
+    /**
+     * We send a notification only if the notification is enable in the settings activity.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        // an Intent broadcast.
-     //   DetailRepository detailRepository = new DetailRepository();
 
-        mNotificationEnable = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(DetailActivity.NOTIFICATION_ENABLE,true);
-        if (mNotificationEnable) {
-
-            mNotificationId = intent.getIntExtra("notificationId", 42);
-            mRestaurantName = intent.getStringExtra("restaurantName");
-            mAdress = intent.getStringExtra("address");
-            //String lunchers = intent.getStringExtra("lunchers");
-            String userId = intent.getStringExtra("userId");
-            String restaurantId = intent.getStringExtra("restaurantId");
+        boolean notificationEnable = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SettingsActivity.NOTIFICATION_ENABLE, true);
+        if (notificationEnable) {
+            mNotificationId = intent.getIntExtra(DetailActivity.NOTIFICATION_ID, 42);
+            mRestaurantName = intent.getStringExtra(DetailActivity.RESTAURANT_NAME);
+            mAddress = intent.getStringExtra(DetailActivity.ADDRESS);
+            String userId = intent.getStringExtra(DetailActivity.USER_ID);
+            String restaurantId = intent.getStringExtra(DetailActivity.RESTAURANT_ID);
 
             mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             createNotificationChannel();
-            Log.d("TAG", "onReceive: notification");
             UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
                 for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
                     if (!documentSnapshot.getId().equals(userId))
                         mUsers.add(documentSnapshot.toObject(User.class));
                 updateLunchers(mUsers, context);
-                //data.setValue(users);
             });
-            //detailRepository.getLunchers(restaurantId,userId).observe(context.ge, users -> {
-
-            //});
-
         }
-
-     //   throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    /**
+     * Create the message that will be send in the notification.
+     *
+     * @param users   the list of workmates who lunch with th user.
+     * @param context need to get string resources.
+     */
     private void updateLunchers(List<User> users, Context context) {
-        String message = context.getResources().getString(R.string.notification_message, luncherList(users), mRestaurantName, mAdress);
+        String message;
 
-//                "Vous déjeunez ce midi avec " + luncherList(users) + "dans le restaurant " + mRestaurantName +
-//                " qui se situe au " + mAdress +". Bon Apétit !!";
-
-
-        buildNotification(context,mNotificationId, message);
-
+        if (users.size() == 0)
+            message = context.getResources().getString(R.string.notification_solo, mRestaurantName, mAddress);
+        else
+            message = context.getResources().getString(R.string.notification_message, luncherList(users), mRestaurantName, mAddress);
+        buildNotification(context, mNotificationId, message);
     }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
             NotificationChannel channel = new NotificationChannel(
-                    "CHANNEL",
+                    CHANNEL_ID,
                     "NOTIFICATION_CHANNEL_NAME",
                     NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("CHANNEL_DESCRIPTION");
@@ -95,11 +84,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void buildNotification(Context context, int id, String message) {
-        // if (numberOfArticles != 0) {
-        //  Resources resources = getApplicationContext().getResources();
-       // NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         NotificationCompat.Builder notificationBuild =
-                new NotificationCompat.Builder(context, "CHANNEL")
+                new NotificationCompat.Builder(context, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_baseline_check_24)
                         .setContentTitle(context.getResources().getString(R.string.notification_title))
                         .setContentText(message)
@@ -108,13 +94,16 @@ public class AlarmReceiver extends BroadcastReceiver {
         mNotificationManager.notify(id, notificationBuild.build());
     }
 
-    public static String luncherList (List<User> lunchers) {
+    /**
+     * @param lunchers the list of workmates who lunch with th user.
+     * @return the string composed of the names in the list lunchers separate
+     * by a coma ","
+     */
+    public static String luncherList(List<User> lunchers) {
         StringBuilder result = new StringBuilder();
         for (User user : lunchers) {
-            result.append(user.getUserName()).append(" ");
+            result.append(user.getUserName()).append(", ");
         }
         return result.toString();
     }
-
-
 }

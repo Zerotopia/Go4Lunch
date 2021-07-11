@@ -9,7 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,73 +22,133 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.Priority;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
-import com.example.goforlunch.AlarmReceiver;
+import com.example.goforlunch.receiver.AlarmReceiver;
 import com.example.goforlunch.R;
-import com.example.goforlunch.RestaurantManager;
-import com.example.goforlunch.UserManager;
-import com.example.goforlunch.WorkerAdapter;
+import com.example.goforlunch.repository.RestaurantManager;
+import com.example.goforlunch.repository.UserManager;
+import com.example.goforlunch.view.WorkerAdapter;
 import com.example.goforlunch.databinding.ActivityDetailBinding;
 import com.example.goforlunch.di.Injection;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
 import com.example.goforlunch.viewmodel.DetailViewModel;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+/**
+ * Display detailed informations about a restaurant.
+ */
 public class DetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "DETAILACTIVITYTAG";
+    /**
+     * TAGs for shared preferences
+     */
     public static final String CURRENT_RESTAURANT = "Current restaurant Id";
-    public static final String NOTIFICATION_ENABLE = "notification enable";
+
+    /**
+     * TAGs for build notification
+     */
+    public static final String NOTIFICATION_ID = "notificationId";
+    public static final String RESTAURANT_NAME = "restaurantName";
+    public static final String ADDRESS = "address";
+    public static final String USER_ID = "userId";
+    public static final String RESTAURANT_ID = "restaurantId";
+
     private ImageView mRestaurantPicture;
     private RecyclerView mLuncherList;
-
     private Button mLikeButton;
-    private FloatingActionButton mFloatingActionButton;
     private RatingBar mRatingBar;
 
-    private String mUrlImage;
     private String mNameRestaurant;
     private String mAddressRestaurant;
     private String mPhoneNumber;
     private Uri mWebsiteUri;
-    private List<User> mUsers = new ArrayList<>();
-    private List<String> mLikers = new ArrayList<>();
-    private String uid;
-    private DetailViewModel mDetailViewModel;
-    private SharedPreferences mPreferences;
-    private String mCurrentId;
+    private List<String> mLikers;
 
+    private DetailViewModel mDetailViewModel;
     private ActivityDetailBinding mBinding;
 
+    private SharedPreferences mPreferences;
+
+    /**
+     * The Id of the current user.
+     */
+    private String mCurrentId;
+    /**
+     * The Id of the restaurant that we display the detail information.
+     */
+    private String mDetailRestaurantId;
+    /**
+     * The current restaurant where the user has choice to lunch (if exists)
+     */
+    private Restaurant mCurrentLunchRestaurant;
+    /**
+     * mLike is true if the user like the restaurant, else false.
+     */
     private boolean mLike;
+    /**
+     * mLunch is true if the user decided to lunch in the restaurant, else false.
+     */
     private boolean mLunch;
-    //private boolean mNotification;
-
-    private Restaurant mCurrentRestaurant;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate: Enter onCreate");
         bindingView();
-        initCurrentId();
-        setInfoRestaurant();
+        setInfo();
         setViewModel();
-        Log.d(TAG, "onCreate: End onCreate");
     }
 
     /**
-     * VIEW MODEL OBSRVERS
+     * Set binding for databinding.
+     */
+    private void bindingView() {
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+        mBinding.setDetailActivity(this);
+        mBinding.setLifecycleOwner(this);
+
+        mRestaurantPicture = mBinding.detailImageview;
+        mLuncherList = mBinding.detailLuncherRecyclerview;
+        mLikeButton = mBinding.detailLikeButton;
+        mRatingBar = mBinding.ratio;
+    }
+
+    /**
+     * Set Information need to detail activity.
+     */
+    private void setInfo() {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
+
+        Intent intent = getIntent();
+        mDetailRestaurantId = intent.getStringExtra(MapActivity.UID_RESTAURANT);
+        mLikers = intent.getStringArrayListExtra(MapActivity.LIST_LIKERS);
+        if (mLikers == null) mLikers = new ArrayList<>();
+    }
+
+    /**
+     * VIEW MODEL
+     * Set and observe ViewModel
+     */
+
+    /**
+     * Set ViewModel and data binding.
+     */
+    private void setViewModel() {
+        mDetailViewModel =
+                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
+        mDetailViewModel.init(mDetailRestaurantId, mCurrentId);
+        observeViewModel();
+        mDetailViewModel.setId(mDetailRestaurantId);
+
+        mBinding.setDetailViewModel(mDetailViewModel);
+    }
+
+    /**
+     * observe View Model
      */
     private void observeViewModel() {
         mDetailViewModel.getPlaceObservable().observe(this, this::updatePlace);
@@ -101,6 +160,12 @@ public class DetailActivity extends AppCompatActivity {
         mDetailViewModel.getRatioRestaurant().observe(this, this::updateRatio);
     }
 
+    /**
+     * Observe the ratio and display it with a number of star
+     * that depends of the ratio.
+     *
+     * @param integer ratio of the restaurant.
+     */
     private void updateRatio(Integer integer) {
         if (integer == 0)
             mRatingBar.setVisibility(View.GONE);
@@ -110,6 +175,12 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Observe place return by the view model and set all info
+     * in appropriate variables.
+     *
+     * @param place place of the restaurant
+     */
     private void updatePlace(Place place) {
         mPhoneNumber = place.getPhoneNumber();
         mWebsiteUri = place.getWebsiteUri();
@@ -117,20 +188,44 @@ public class DetailActivity extends AppCompatActivity {
         mNameRestaurant = place.getName();
     }
 
+    /**
+     * Observe the bitmap return by the view model and
+     * set the picture of the restaurant.
+     *
+     * @param bitmap Image of  the restaurant.
+     */
     private void updateImage(Bitmap bitmap) {
         mRestaurantPicture.setImageBitmap(bitmap);
     }
 
+    /**
+     * Observe if the restaurant is selected for lunch or not and
+     * update the boolean mLucnh with the observed value.
+     *
+     * @param isLunch boolean tha is true if the user has selected the
+     *                restaurant for lunch, else false.
+     */
     private void updateFloatingButton(Boolean isLunch) {
         mLunch = isLunch;
     }
 
+    /**
+     * Observe the users that lunch in the restaurants and update the
+     * recyclerview that display the list of co-lunchers.
+     *
+     * @param users all other users that lunch in this restaurant.
+     */
     private void setLuncherAdapter(List<User> users) {
-        mUsers = users;
         mLuncherList.setLayoutManager(new LinearLayoutManager(this));
-        mLuncherList.setAdapter(new WorkerAdapter(mUsers, true));
+        mLuncherList.setAdapter(new WorkerAdapter(users, true));
     }
 
+    /**
+     * Observe if the user like or unlike the restaurant and
+     * update the star icon and the boolean mLike.
+     *
+     * @param isLike true if the user like the restaurant else false.
+     */
     private void updateLikeButton(Boolean isLike) {
         Drawable drawableTop;
         if (isLike)
@@ -141,68 +236,148 @@ public class DetailActivity extends AppCompatActivity {
         mLikeButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawableTop, null, null);
     }
 
+    /**
+     * Observe the current restaurant selected by the user for lunch.
+     * if there exist a restaurant selected for lunch then we save this restaurant in
+     * mCurrentLunchRestaurant.
+     *
+     * @param currentRestaurantId Id of the current restaurant that the user has selected to lunch.
+     */
     private void updateRestaurant(String currentRestaurantId) {
         if ((currentRestaurantId != null) && !currentRestaurantId.isEmpty())
             RestaurantManager.getRestaurant(currentRestaurantId).addOnSuccessListener(documentSnapshot -> {
-                mCurrentRestaurant = documentSnapshot.toObject(Restaurant.class);
-                mCurrentRestaurant.setId(documentSnapshot.getId());
+                mCurrentLunchRestaurant = documentSnapshot.toObject(Restaurant.class);
+                mCurrentLunchRestaurant.setId(documentSnapshot.getId());
             });
     }
 
-/********************************************************************************/
     /**
      * CLICKLISTENER
      */
+
+    /**
+     * Call when the user clicked on the Floating button to choice
+     * the restaurant where the user want to lunch.
+     * 1 - We create the restaurant in Firebase if he doesn't exists.
+     * 2 - We update all information on Firebase relative to this click.
+     * 3 - We update Shared Preferences about the current restaurant choice.
+     * 4 - We set AlarmManager to manage the notification.
+     */
     public void addOnclicklistener() {
-        Log.d("TAG", "addOnclicklistener: ");
         createRestaurant();
-        if ((mCurrentRestaurant != null) && !mCurrentRestaurant.getId().isEmpty())
-            RestaurantManager.updateRestaurantLunchers(mCurrentRestaurant.getNumberOfLunchers() - 1, mCurrentRestaurant.getId());
+        updateFireBaseDataBase();
+        updateCurrentRestaurantInSharedPreferences();
         setAlarmManager();
-        setCurrentRestaurant();
         mDetailViewModel.changeUserRestaurant();
     }
 
-    private void setCurrentRestaurant() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
-        SharedPreferences.Editor edit = preferences.edit();
-        if (mLunch) edit.putString(CURRENT_RESTAURANT,"");
-        else edit.putString(CURRENT_RESTAURANT,uid);
-        edit.apply();
-        //mNotification = preferences.getBoolean(NOTIFICATION_ENABLE,false);
-    }
-
+    /**
+     * Call when the user clicked on the website button.
+     * Just start an activity with a browser that open the web page.
+     */
     public void webOnClickListener() {
         Intent intent = new Intent(Intent.ACTION_VIEW, mWebsiteUri);
         startActivity(intent);
-
     }
 
+    /**
+     * Call when the user clicked on the like button.
+     * 1 - We create the restaurant in firebase if he doesn't exists.
+     * 2 - Depends of the user like/unlike, we add/remove the current user
+     * of the list of the "Likers" of the restaurant.
+     */
     public void likeOnClickListener() {
         createRestaurant();
         if (mLike) mLikers.remove(mCurrentId);
         else mLikers.add(mCurrentId);
-        RestaurantManager.updateRestaurantLikers(mLikers, uid);
+        RestaurantManager.updateRestaurantLikers(mLikers, mDetailRestaurantId);
         mDetailViewModel.changeLike();
     }
 
+    /**
+     * Call when the user clicked on the Call button.
+     * Just open the phone application with the phone number of the restaurant.
+     */
     public void callOnClickListener() {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(Uri.parse("tel:" + mPhoneNumber));
         startActivity(intent);
+    }
+
+    /**
+     * ANNEXE FUNCTION
+     */
+
+    /**
+     * Create the restaurant in Firebase if he doesn't exists.
+     */
+    private void createRestaurant() {
+        RestaurantManager.getRestaurant(mDetailRestaurantId).addOnSuccessListener(documentSnapshot -> {
+            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+            if (currentRestaurant == null) {
+                RestaurantManager.createRestaurant(mDetailRestaurantId);
+                RestaurantManager.updateRestaurantName(mNameRestaurant, mDetailRestaurantId);
+                RestaurantManager.updateRestaurantLunchers(0, mDetailRestaurantId);
+                RestaurantManager.updateRestaurantLikers(mLikers, mDetailRestaurantId);
+            }
+        });
+    }
+
+    /**
+     * This methode is call whe the user choices or "unchoices" the restaurant.
+     * There is several case :
+     * Case 1 : The user has already choice another restaurant and make a new choice.
+     * Then the number of lunchers of the previous restaurant should be decrease by 1.
+     * Case 2 : The user has already choice this restaurant and he has changed her mind.
+     * Then the restaurant we erase the name of the restaurant where the user should be go.
+     * Case 3 : The user choice this restaurant.
+     * Then the restaurant where the user has decided to lunch should be save in the database and
+     * the number of lunchers of this restaurant should be increase by 1.
+     */
+    private void updateFireBaseDataBase() {
+        // Case 1
+        if ((mCurrentLunchRestaurant != null) && !mCurrentLunchRestaurant.getId().isEmpty())
+            RestaurantManager.updateRestaurantLunchers(
+                    mCurrentLunchRestaurant.getNumberOfLunchers() - 1,
+                    mCurrentLunchRestaurant.getId());
+        // Case 2
+        if (mLunch) {
+            UserManager.updateUserRestaurant("", mCurrentId, "");
+        }
+        // Case 3
+        else {
+            UserManager.updateUserRestaurant(mDetailRestaurantId, mCurrentId, mNameRestaurant);
+            RestaurantManager.getRestaurant(mDetailRestaurantId).addOnSuccessListener(documentSnapshot -> {
+                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
+                RestaurantManager.updateRestaurantLunchers(currentRestaurant.getNumberOfLunchers() + 1, mDetailRestaurantId);
+            });
+            mDetailViewModel.updateCurrentRestaurant();
+        }
 
     }
-/*************************************************************************************/
+
     /**
-     * annexe function
+     * When the user choice a restaurant, we saves her choice in Shared Preferences
+     * to open detail activity with the good restaurant when the user click on "Your lunch"
+     * in the NavigationDrawer.
+     */
+    private void updateCurrentRestaurantInSharedPreferences() {
+        SharedPreferences.Editor edit = mPreferences.edit();
+        if (mLunch) edit.putString(CURRENT_RESTAURANT, "");
+        else edit.putString(CURRENT_RESTAURANT, mDetailRestaurantId);
+        edit.apply();
+    }
+
+    /**
+     * Set AlarmManager to send a notification to the user at 12:00 PM
      */
     private void setAlarmManager() {
         Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra("notificationId", 42);
-        intent.putExtra("restaurantName", mNameRestaurant);
-        intent.putExtra("address", mAddressRestaurant);
-        intent.putExtra("userId", mCurrentId);
-        intent.putExtra("restaurantId", uid);
+        intent.putExtra(NOTIFICATION_ID, 42);
+        intent.putExtra(RESTAURANT_NAME, mNameRestaurant);
+        intent.putExtra(ADDRESS, mAddressRestaurant);
+        intent.putExtra(USER_ID, mCurrentId);
+        intent.putExtra(RESTAURANT_ID, mDetailRestaurantId);
 
         PendingIntent alarmIntent = PendingIntent.getBroadcast(
                 this,
@@ -211,17 +386,9 @@ public class DetailActivity extends AppCompatActivity {
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (mLunch) {
-            UserManager.updateUserRestaurant("", mCurrentId, "");
+        if (mLunch)
             alarmManager.cancel(alarmIntent);
-        } else {
-            UserManager.updateUserRestaurant(uid, mCurrentId, mNameRestaurant);
-            RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-                Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-                RestaurantManager.updateRestaurantLunchers(currentRestaurant.getNumberOfLunchers() + 1, uid);
-            });
-            mDetailViewModel.updateCurrentRestaurant();
-
+        else {
             Calendar currentTime = Calendar.getInstance();
             currentTime.set(Calendar.HOUR_OF_DAY, 12);
             currentTime.set(Calendar.MINUTE, 0);
@@ -230,72 +397,5 @@ public class DetailActivity extends AppCompatActivity {
 
             alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, alarmIntent);
         }
-    }
-
-    private void createRestaurant() {
-        RestaurantManager.getRestaurant(uid).addOnSuccessListener(documentSnapshot -> {
-            Restaurant currentRestaurant = documentSnapshot.toObject(Restaurant.class);
-            if (currentRestaurant == null) {
-                RestaurantManager.createRestaurant(uid);
-                RestaurantManager.updateRestaurantName(mNameRestaurant, uid);
-                RestaurantManager.updateRestaurantLunchers(0, uid);
-            }
-
-        });
-    }
-
-
-    private void setViewModel() {
-        mDetailViewModel =
-                ViewModelProviders.of(this, Injection.provideNetworkViewModelFactory(this)).get(DetailViewModel.class);
-        mDetailViewModel.init(uid, mCurrentId);
-        observeViewModel();
-        mDetailViewModel.setId(uid);
-
-        mBinding.setDetailViewModel(mDetailViewModel);
-        mBinding.setLifecycleOwner(this);
-    }
-
-    private void setInfoRestaurant() {
-        Intent intent = getIntent();
-        uid = intent.getStringExtra(MapActivity.UID_RESTAURANT);
-        mUrlImage = intent.getStringExtra(MapActivity.URL_IMAGE);
-        mNameRestaurant = intent.getStringExtra(MapActivity.NAME_RESTAURANT);
-        mAddressRestaurant = intent.getStringExtra(MapActivity.ADDR_RESTAURANT);
-
-        RequestOptions options = new RequestOptions()
-                .centerCrop()
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .priority(Priority.HIGH);
-        Glide.with(this)
-                .setDefaultRequestOptions(options)
-                .load(mUrlImage)
-                //  .apply
-                .into(mRestaurantPicture);
-
-    }
-
-    private void initCurrentId() {
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mCurrentId = mPreferences.getString(MapActivity.CURRENTID, "");
-    }
-
-    private void bindingView() {
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
-        mBinding.setDetailActivity(this);
-
-        mRestaurantPicture = mBinding.detailImageview;
-        mLuncherList = mBinding.detailLuncherRecyclerview;
-        mLikeButton = mBinding.detailLikeButton;
-        mFloatingActionButton = mBinding.floatingButton;
-        mRatingBar = mBinding.ratio;
-    }
-
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "onBackPressed: ");
-        super.onBackPressed();
     }
 }

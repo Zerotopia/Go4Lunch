@@ -4,13 +4,13 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 
+/**
+ * POJO Class for Place.
+ */
 public class Place {
 
     @SerializedName("geometry")
     private Geometry mGeometry;
-
-    @SerializedName("icon")
-    private String mIconUrl;
 
     @SerializedName("reference")
     private String mId;
@@ -30,8 +30,6 @@ public class Place {
     @SerializedName("opening_hours")
     private OpenHours mOpen;
 
-    //private int mRatioLike;
-
     public Place(String id, String name, String address) {
         mId = id;
         mName = name;
@@ -40,14 +38,6 @@ public class Place {
 
     public Geometry getGeometry() {
         return mGeometry;
-    }
-
-    public void setGeometry(Geometry geometry) {
-        mGeometry = geometry;
-    }
-
-    public String getIconUrl() {
-        return mIconUrl;
     }
 
     public String getId() {
@@ -62,7 +52,9 @@ public class Place {
         return mName;
     }
 
-    public String getAddress() { return mAddress; }
+    public String getAddress() {
+        return mAddress;
+    }
 
     public Double getRatio() {
         return mRatio;
@@ -71,12 +63,4 @@ public class Place {
     public OpenHours getOpen() {
         return mOpen;
     }
-
-//    public int getRatioLike() {
-//        return mRatioLike;
-//    }
-//
-//    public void setRatioLike(int ratioLike) {
-//        mRatioLike = ratioLike;
-//    }
 }

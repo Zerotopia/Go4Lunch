@@ -3,17 +3,12 @@ package com.example.goforlunch.repository;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Parcel;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.goforlunch.R;
-import com.example.goforlunch.RestaurantManager;
-import com.example.goforlunch.UserManager;
 import com.example.goforlunch.model.Restaurant;
 import com.example.goforlunch.model.User;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.libraries.places.api.model.AddressComponents;
@@ -31,6 +26,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Repository for detail activity.
+ */
 public class DetailRepository {
 
     private PlacesClient mPlacesClient;
@@ -39,21 +37,20 @@ public class DetailRepository {
         mPlacesClient = placesClient;
     }
 
-    public DetailRepository() {
-    }
-
+    /**
+     * Get place information from its Id. The information that is pertinent for us is :
+     * - phone number
+     * - website url
+     * - address
+     * - name of the place
+     * The address is cut to have only the street part.
+     */
     public MutableLiveData<Place> getPlace(String placeId) {
         final MutableLiveData<Place> data = new MutableLiveData<>();
         final List<Place.Field> placeFields = Arrays.asList(Place.Field.PHONE_NUMBER, Place.Field.WEBSITE_URI, Place.Field.ADDRESS, Place.Field.NAME);
         final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
         mPlacesClient.fetchPlace(request).addOnSuccessListener(fetchPlaceResponse -> {
-            Log.d("TAG", "getPlaceLocation: notNPE1");
             if (fetchPlaceResponse != null) {
-                //Log.d("TAG", "getPlaceLocation: fetchnonnull : " + fetchPlaceResponse.toString());
-                //if (fetchPlaceResponse.getPlace() != null) {
-                //String[] dataArray = {fetchPlaceResponse.getPlace().getPhoneNumber(); //,fetchPlaceResponse.getPlace().getWebsiteUri()};
-                //  Log.d("TAG", "getPlaceLocation: before datasetvalue : " + fetchPlaceResponse.getPlace().toString());
-                // Log.d("TAG", "getPlaceLocation: value " + fetchPlaceResponse.getPlace().getLatLng());
                 Place placeResponse = fetchPlaceResponse.getPlace();
                 Place place = new Place() {
                     @Nullable
@@ -178,35 +175,23 @@ public class DetailRepository {
                     }
                 };
                 data.setValue(place);
-                //} else
-                //  Log.d("TAG", "getPlaceLocation: notNPE2");
-                //Log.d("TAG", "getPlaceLocation: setvalueOK");
-            }
-        }).addOnFailureListener((exception) -> {
-            if (exception instanceof ApiException) {
-                final ApiException apiException = (ApiException) exception;
-                Log.e("TAG", "Place not found: " + exception.getMessage());
-                final int statusCode = apiException.getStatusCode();
-                // TODO: Handle error with given status code.
             }
         });
-
         return data;
-
     }
 
+    /**
+     * Get bitmap photo of a place from its id.
+     */
     public MutableLiveData<Bitmap> getPhotos(String placeId) {
-        final MutableLiveData<Bitmap> data = new MutableLiveData();
+        final MutableLiveData<Bitmap> data = new MutableLiveData<>();
         final List<Place.Field> placeFields = Collections.singletonList(Place.Field.PHOTO_METADATAS);
         final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
         mPlacesClient.fetchPlace(request).addOnSuccessListener(fetchPlaceResponse -> {
             final List<PhotoMetadata> metadata = fetchPlaceResponse.getPlace().getPhotoMetadatas();
-            if (metadata == null || metadata.isEmpty()) {
-                Log.w("TAG", "No photo metadata.");
-                return;
-            }
-            final PhotoMetadata photoMetadata = metadata.get(0);
+            if (metadata == null || metadata.isEmpty()) return;
 
+            final PhotoMetadata photoMetadata = metadata.get(0);
             final FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
                     .setMaxWidth(500) // Optional.
                     .setMaxHeight(300) // Optional.
@@ -217,6 +202,9 @@ public class DetailRepository {
         return data;
     }
 
+    /**
+     * Determine if the user "userId" like the restaurant "restaurantId".
+     */
     public MutableLiveData<Boolean> isLike(String restaurantId, String userId) {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {
@@ -228,6 +216,9 @@ public class DetailRepository {
         return data;
     }
 
+    /**
+     * Determine if the user "userId" lunch in the restaurant "restaurantId".
+     */
     public MutableLiveData<Boolean> isLunch(String restaurantId, String userId) {
         MutableLiveData<Boolean> data = new MutableLiveData<>();
         UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
@@ -237,6 +228,10 @@ public class DetailRepository {
         return data;
     }
 
+    /**
+     * Get the list of the lunchers that lunch in the restaurant "restaurantId"
+     * with the user "userId". The user "userId" not appear in this list.
+     */
     public MutableLiveData<List<User>> getLunchers(String restaurantId, String userId) {
         MutableLiveData<List<User>> data = new MutableLiveData<>();
         UserManager.getUsersInRestaurant(restaurantId).addOnSuccessListener(queryDocumentSnapshots -> {
@@ -244,7 +239,6 @@ public class DetailRepository {
             for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots)
                 if (!documentSnapshot.getId().equals(userId)) {
                     User user = documentSnapshot.toObject(User.class);
-                    user.initName();
                     users.add(user);
                 }
             data.setValue(users);
@@ -252,6 +246,9 @@ public class DetailRepository {
         return data;
     }
 
+    /**
+     * Get the current restaurant id that the user "userId" has choiced to lunch.
+     */
     public MutableLiveData<String> getCurrentRestaurantId(String userId) {
         MutableLiveData<String> data = new MutableLiveData<>();
         UserManager.getUser(userId).addOnSuccessListener(documentSnapshot -> {
@@ -261,6 +258,9 @@ public class DetailRepository {
         return data;
     }
 
+    /**
+     * Get the ratio of the restaurant "restaurantId"
+     */
     public MutableLiveData<Integer> getRatio(String restaurantId) {
         MutableLiveData<Integer> data = new MutableLiveData<>();
         RestaurantManager.getRestaurant(restaurantId).addOnSuccessListener(documentSnapshot -> {

@@ -1,8 +1,5 @@
 package com.example.goforlunch.viewmodel;
 
-import android.graphics.Bitmap;
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -14,37 +11,46 @@ import com.example.goforlunch.repository.NetworkRepository;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.LocationBias;
-import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 
 import java.util.List;
 
 public class NetworkViewModel extends ViewModel {
 
-    private MutableLiveData<NearByPlace> mNetworkObservable;
-    private MutableLiveData<List<String>> mRestaurantObservable;
-    private MutableLiveData<List<User>> mWorkersObservable;
     private NetworkRepository mNetworkRepository;
-    private LocationBias mBias;
-    private int mTotalUsers;
-    private LiveData<Integer> mTotalUsersObservable; //
-    private MutableLiveData<Integer> mFragmentIdObservable;
 
+    private LocationBias mBias;
+    private Integer mTotalUsers;
+
+    private MutableLiveData<String> mQuery = new MutableLiveData<>();
+    private MutableLiveData<String> mPlaceId = new MutableLiveData<>();
+    private MutableLiveData<NearByPlace> mPlaces = new MutableLiveData<>();
+
+    private final LiveData<List<AutocompletePrediction>> mPredictionObservable
+            = Transformations.switchMap(mQuery, (query) -> mNetworkRepository.getPlacePredictions(query, mBias));
+    private final LiveData<LatLng> mLocationObservable =
+            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPlaceLocation(placeId));
+    private final LiveData<List<String>> mLikersObservable =
+            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getLikers(placeId));
+    private final LiveData<List<Integer>> mRatioObservable =
+            Transformations.switchMap(mPlaces, (nearbyPlace) -> mNetworkRepository.getRatio(nearbyPlace, mTotalUsers));
+    private final LiveData<List<Integer>> mNumberOfLuncherObservable =
+            Transformations.switchMap(mPlaces, (nearbyplace) -> mNetworkRepository.getNumberOfLunchers(nearbyplace));
+
+    private MutableLiveData<NearByPlace> mNetworkObservable;
+    private MutableLiveData<List<User>> mWorkersObservable;
+    private MutableLiveData<List<String>> mRestaurantObservable;
+    private MutableLiveData<Integer> mFragmentIdObservable;
+    private MutableLiveData<Integer> mTotalUsersObservable;
 
     public NetworkViewModel(NetworkRepository networkRepository) {
         mNetworkRepository = networkRepository;
     }
 
-    public void initTotalUsers() {
-        mTotalUsersObservable = mNetworkRepository.getTotalUsers();
-        Log.d("VIEWMODELTAG", "initTotalUsers: ");
-    }
-
-    public void init(String userId, LocationBias bias, int totalUsers) {
+    public void init(String userId, LocationBias bias) {
         mBias = bias;
-        mTotalUsers = totalUsers;
         if (mNetworkObservable != null) return;
-        mNetworkObservable = mNetworkRepository.getNearByPlace();
+        mNetworkObservable = mNetworkRepository.getNearByPlace(initPosFromBias(mBias));
         mWorkersObservable = mNetworkRepository.getWorkers(userId);
     }
 
@@ -53,17 +59,52 @@ public class NetworkViewModel extends ViewModel {
     }
 
     public void initFragment(int id) {
-      mFragmentIdObservable = mNetworkRepository.getFragmentId(id);
+        mFragmentIdObservable = mNetworkRepository.getFragmentId(id);
     }
-
-
 
     public void changeFragment(int id) {
         mFragmentIdObservable.setValue(id);
     }
 
+    public void initTotalUsers() {
+        mTotalUsersObservable = mNetworkRepository.getTotalUsers();
+    }
+
+    public void setTotalusers(int totalusers) {
+        mTotalUsers = totalusers;
+    }
+
+    public void newQuery(String query) {
+        mQuery.setValue(query);
+    }
+
+    public void newPos(String placeId) {
+        mPlaceId.setValue(placeId);
+    }
+
+    ;
+
+    public void newPlaces(NearByPlace places) {
+        mPlaces.setValue(places);
+    }
+
+    /**
+     * Function to have initial position for the nearbysearch request.
+     *
+     * @param bias
+     * @return
+     */
+    public LatLng initPosFromBias(LocationBias bias) {
+        LatLng ne = ((RectangularBounds) bias).getNortheast();
+        LatLng sw = ((RectangularBounds) bias).getSouthwest();
+
+        double lat = (ne.latitude + sw.latitude) / 2;
+        double lng = (ne.longitude + sw.longitude) / 2;
+
+        return new LatLng(lat, lng);
+    }
+
     public LiveData<NearByPlace> getNetworkObservable() {
-        Log.d("TAG", "getNetworkObservable: ");
         return mNetworkObservable;
     }
 
@@ -71,60 +112,23 @@ public class NetworkViewModel extends ViewModel {
         return mRestaurantObservable;
     }
 
-    public LiveData<List<User>> getWorkersObservable() { return  mWorkersObservable; }
-
-    private MutableLiveData<String> mQuery = new MutableLiveData<>();
-    private MutableLiveData<String> mPlaceId = new MutableLiveData<>();
-    private MutableLiveData<NearByPlace> mPlaces = new MutableLiveData<>();
-//    private LocationBias BIAS = RectangularBounds.newInstance(
-//            new LatLng(47.38545, 0.67909), // SW lat, lng
-    //        new LatLng(47.390289, 0.688850);
-//            new LatLng(47.39585, 0.69519) );// NE lat, lng
-    private final LiveData<List<AutocompletePrediction>> mPredictionObservable
-            = Transformations.switchMap(mQuery, (query) -> mNetworkRepository.getPlacePredictions(query, mBias));
-    private final LiveData<LatLng> mLocationObservable =
-            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPlaceLocation(placeId));
-    private  final LiveData<Place> mPhoneObservable =
-            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPlacePhone(placeId));
-    //    private final LiveData<Place> mPlaceObservable =
-//            Transformations.switchMap(mPlaceId, (placeId) -> mPredictionRepository.getPlace(placeId));
-    private final LiveData<com.example.goforlunch.model.Place> mPlaceObservable =
-            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPlace(placeId));
-    private  final LiveData<Bitmap> mPhotoObservable =
-            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getPhotos(placeId));
-
-
-    private final LiveData<List<String>> mLikersObservable =
-            Transformations.switchMap(mPlaceId, (placeId) -> mNetworkRepository.getLikers(placeId));
-
-    private final LiveData<List<Double>> mRatioObservable =
-            Transformations.switchMap(mPlaces, (nearbyPlace) -> mNetworkRepository.getRatio(nearbyPlace, mTotalUsers));
-
-    private final LiveData<List<Integer>> mNumberOfLuncherObservable =
-            Transformations.switchMap(mPlaces, (nearbyplace) -> mNetworkRepository.getNumberOfLuncher(nearbyplace));
-
-    public void newQuery(String query) {
-        mQuery.setValue(query);
+    public LiveData<List<User>> getWorkersObservable() {
+        return mWorkersObservable;
     }
-    public void newPos (String placeId) {mPlaceId.setValue(placeId);};
-    public void newPlaces (NearByPlace places) {mPlaces.setValue(places);}
-
 
     public final LiveData<List<AutocompletePrediction>> getPredictionObservable() {
         return mPredictionObservable;
     }
 
-    public final LiveData<LatLng> getLocationObservable() { return mLocationObservable; }
+    public final LiveData<LatLng> getLocationObservable() {
+        return mLocationObservable;
+    }
 
-    public final LiveData<Place> getmPhoneObservable() { return  mPhoneObservable; }
-    //public final LiveData<Place> getPlaceObservable() { return mPlaceObservable; }
+    public final LiveData<List<String>> getmLikersObservable() {
+        return mLikersObservable;
+    }
 
-    public  final LiveData<List<String>> getmLikersObservable() { return  mLikersObservable; }
-
-    public final LiveData<com.example.goforlunch.model.Place> getPlaceObservable() { return mPlaceObservable; }
-    public final LiveData<Bitmap> getPhotoObservable() {return mPhotoObservable; }
-
-    public LiveData<List<Double>> getRatioObservable() {
+    public LiveData<List<Integer>> getRatioObservable() {
         return mRatioObservable;
     }
 

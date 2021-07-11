@@ -5,7 +5,7 @@
     <item
         android:id="@+id/sort_item"
         android:icon="@drawable/ic_baseline_sort_24"
-        android:title="Sort"
+        android:title="@string/sort"
         app:showAsAction="collapseActionView|ifRoom">
         <menu>
             <item

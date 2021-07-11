@@ -28,4 +28,10 @@
     <string name="sort_by_ratio">trier par note</string>
     <string name="sort_by_headcount">Trier par effectif</string>
     <string name="sort_by_distance">Trier par distance</string>
+    <string name="notification_solo">Vous déjeunez ce midi dans le restaurant %1$s qui se situe au %2$s.  Bon Appétit !</string>
+    <string name="permission_denied">Permission de géolocalisation refusé.</string>
+    <string name="google_signin_fail">La connexion avec google a échoué.</string>
+    <string name="facebook_cancel">Opération annulée</string>
+    <string name="facebook_error">Erreur de connexion</string>
+    <string name="sort">Trie</string>
 </resources>

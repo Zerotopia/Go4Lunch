@@ -37,8 +37,5 @@
             android:layout_marginStart="20dp"
             android:layout_weight="8"
             android:text="@{(list ? @string/is_joining(user.userName) : (user.restaurantName != null) ? @string/lunch_in(user.userName, user.restaurantName) : @string/not_yet(user.userName))}" />
-        <!--        android:text="@{wadapter.detail ? user.userName + `lunch in ` + user.restaurantName : -->
-        <!--            user.userName + `ìs joining`}"-->
-
     </LinearLayout>
 </layout>

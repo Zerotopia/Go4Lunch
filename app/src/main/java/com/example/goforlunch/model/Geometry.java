@@ -3,6 +3,9 @@ package com.example.goforlunch.model;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * POJO Class for geometry of a Place.
+ */
 public class Geometry {
 
     @SerializedName("location")

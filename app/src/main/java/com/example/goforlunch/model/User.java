@@ -1,6 +1,5 @@
 package com.example.goforlunch.model;
 
-import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.databinding.BindingAdapter;
@@ -10,31 +9,19 @@ import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.goforlunch.R;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.model.value.ReferenceValue;
 
-import java.nio.file.attribute.UserPrincipalLookupService;
-
+/**
+ * User Model
+ */
 public class User {
-    //@SerializedName("FirstName")
+
     private String UserName;
-    //@SerializedName("LastName")
-    //private String LastName;
-    ///@SerializedName("Email")
     private String Email;
-    // private boolean mIsActive;
-
-    //private int mUserId;
-    // @SerializedName("Photo")
     private String Photo;
-    // @SerializedName("RestaurantId")
     private String RestaurantId;
-
     private String RestaurantName;
-
     private String firstName;
     private String lastName;
-
 
     public User() {
     }
@@ -45,7 +32,6 @@ public class User {
         Photo = photo;
         firstName = UserName.split(" ")[0];
         lastName = UserName.split(" ")[1];
-     //   Log.d("USERTAAAAAAAAGGGGGGGG", "User: firstnam ::: " + firstName + " lastName :: " + lastName);
     }
 
     public String getUserName() {
@@ -64,14 +50,6 @@ public class User {
         Email = email;
     }
 
-    // public boolean isActive() {
-    //     return mIsActive;
-    // }
-
-    // public void setActive(boolean active) {
-    //     mIsActive = active;
-    // }
-
     public String getRestaurantName() {
         return RestaurantName;
     }
@@ -88,14 +66,6 @@ public class User {
         RestaurantId = restaurantId;
     }
 
-//    public int getUserId() {
-//        return mUserId;
-//    }
-//
-//    public void setUserId(int userId) {
-//        mUserId = userId;
-//    }
-
     public String getPhoto() {
         return Photo;
     }
@@ -104,19 +74,29 @@ public class User {
         Photo = photo;
     }
 
-    @Override
-    public String toString() {
-        return UserName + "/" +
-                Email + "/" +
-                Photo;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public static User parseString(String userString) {
-        String[] userInfo = userString.split("/", 3);
-        return new User(userInfo[0], userInfo[1], userInfo[2]);
-
+    public String getLastName() {
+        return lastName;
     }
 
+    /**
+     * The separation of the first name and the last name
+     * is to allow the research of workmate either by first name or last name.
+     */
+    public void initName() {
+        firstName = UserName.split(" ")[0];
+        lastName = UserName.split(" ")[1];
+    }
+
+    /**
+     * Adapter used to databinding the user's image.
+     *
+     * @param imageView View that should be bind.
+     * @param urlImage  url of the user's Image
+     */
     @BindingAdapter("userImage")
     public static void loadImage(ImageView imageView, String urlImage) {
         RequestOptions options = new RequestOptions()
@@ -130,19 +110,5 @@ public class User {
                 .load(urlImage)
                 .apply(RequestOptions.circleCropTransform())
                 .into(imageView);
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void initName() {
-        firstName = UserName.split(" ")[0];
-        lastName = UserName.split(" ")[1];
-
     }
 }

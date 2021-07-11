@@ -1,4 +1,4 @@
-package com.example.goforlunch;
+package com.example.goforlunch.repository;
 
 import com.example.goforlunch.model.User;
 import com.google.android.gms.tasks.Task;
@@ -7,13 +7,15 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-
+/**
+ * Clas to manage the firebase database of users.
+ */
 public class UserManager {
     private static final String COLLECTION_NAME = "users";
 
     // --- COLLECTION REFERENCE ---
 
-    public static CollectionReference getUsersCollection(){
+    public static CollectionReference getUsersCollection() {
         return FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
     }
 
@@ -26,16 +28,16 @@ public class UserManager {
 
     // --- GET ---
 
-    public static Task<DocumentSnapshot> getUser(String uid){
+    public static Task<DocumentSnapshot> getUser(String uid) {
         return UserManager.getUsersCollection().document(uid).get();
     }
 
-    public static Task<QuerySnapshot> getAllUser(){
+    public static Task<QuerySnapshot> getAllUser() {
         return UserManager.getUsersCollection().get();
     }
 
-    public static Task<QuerySnapshot>getUsersInRestaurant(String uid) {
-        return UserManager.getUsersCollection().whereEqualTo("RestaurantId",uid).get();
+    public static Task<QuerySnapshot> getUsersInRestaurant(String uid) {
+        return UserManager.getUsersCollection().whereEqualTo("RestaurantId", uid).get();
     }
     // --- UPDATE ---
 
@@ -47,7 +49,6 @@ public class UserManager {
         return UserManager.getUsersCollection().document(uid).update(
                 "RestaurantId", restaurantId,
                 "RestaurantName", restaurantName);
-        //return UserManager.getUsersCollection().document(uid).update("RestaurantId", restaurantId);
     }
 
     // --- DELETE ---

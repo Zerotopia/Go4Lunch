@@ -2,6 +2,9 @@ package com.example.goforlunch.model;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * POJO Class for Coordinate of Place
+ */
 public class Coordinate {
 
     @SerializedName("lat")
