@@ -103,7 +103,7 @@ public class ExampleUnitTest {
             add(new User("Celestine Ernest", "", ""));
             add(new User("Ludivine Zaccari", "", ""));
         }};
-     String expected = "Albert Einstein Celestine Ernest Ludivine Zaccari ";
+     String expected = "Albert Einstein, Celestine Ernest, Ludivine Zaccari, ";
         assertEquals(expected, luncherList(users));
     }
 
