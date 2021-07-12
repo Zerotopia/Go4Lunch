@@ -112,11 +112,6 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private static final CharacterStyle STYLE_BOLD = new StyleSpan(Typeface.BOLD);
 
     /**
-     * List of the users who like the selected restaurant.
-     * This list will be send to DetailActivity.
-     */
-    private List<String> mLikers = new ArrayList<>();
-    /**
      * Id of the place selected by the user.
      * Send to DetailActivity.
      */
@@ -142,6 +137,16 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     private LocationBias mBias;
 
     /**
+     * Intent for start detailActivity when the user click on an item.
+     */
+    private Intent mIntent;
+    /**
+     * Boolean determine if the user has clicked on an item or not
+     * Use to execute a code in an observable only if its true.
+     */
+    private boolean mItemclick = false;
+
+    /**
      * Integer to know if we display the MAP, the list of restaurants or the workmates.
      */
     private int mSelectedFragment;
@@ -162,6 +167,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
             observeViewModel();
         }
         mCurrentRestaurantId = mPreferences.getString(DetailActivity.CURRENT_RESTAURANT, "");
+        mIntent = new Intent(this, DetailActivity.class);
     }
 
     @Override
@@ -297,7 +303,11 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
     }
 
     private void updateLikers(List<String> likers) {
-        mLikers = likers;
+        if (mItemclick) {
+            mIntent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) likers);
+            startActivity(mIntent);
+            mItemclick = false;
+        }
     }
 
     /**
@@ -344,6 +354,7 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
      * Fragment that display the map.
      */
     private void updateMapFragment() {
+        getSupportActionBar().setTitle(R.string.hungry);
         if (mInitialPosition != null) {
             mMapFragment = MapFragment.newInstance(mInitialPosition);
             getSupportFragmentManager()
@@ -361,12 +372,18 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
      * @param list int that determined if we display workmates or restaurants
      */
     private void updateRecyclerFragment(int list) {
+        if (list == WORKER_FRAGMENT) {
+            getSupportActionBar().setTitle(R.string.available_workmates);
+            mSelectedFragment = WORKER_FRAGMENT;
+        } else {
+            getSupportActionBar().setTitle(R.string.hungry);
+            mSelectedFragment = RESTAURANT_FRAGMENT;
+        }
         mRecyclerFragment = RecyclerFragment.newInstance(list, mInitialPosition);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.top_view_container, mRecyclerFragment)
                 .commit();
-        mSelectedFragment = (list == WORKER_FRAGMENT) ? WORKER_FRAGMENT : RESTAURANT_FRAGMENT;
     }
 
     /**
@@ -456,11 +473,9 @@ public class MapActivity extends AppCompatActivity implements NavigationView.OnN
      */
     @Override
     public void itemClick(String placeId) {
+        mItemclick = true;
         mNetworkViewModel.newPos(placeId);
-        Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra(MapActivity.UID_RESTAURANT, placeId);
-        intent.putExtra(MapActivity.LIST_LIKERS, (ArrayList<String>) mLikers);
-        startActivity(intent);
+        mIntent.putExtra(MapActivity.UID_RESTAURANT, placeId);
     }
 
     /**

@@ -34,4 +34,6 @@
     <string name="facebook_cancel">Opération annulée</string>
     <string name="facebook_error">Erreur de connexion</string>
     <string name="sort">Trie</string>
+    <string name="hungry">J\'ai faim !</string>
+    <string name="available_workmates">Collègues disponibles</string>
 </resources>
